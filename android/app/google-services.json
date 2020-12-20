@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "37512260278",
+    "project_id": "bousta-edfa9",
+    "storage_bucket": "bousta-edfa9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:37512260278:android:2c37f9f99ccc9639571417",
+        "android_client_info": {
+          "package_name": "com.example.lesrecettesdebousta"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "37512260278-b8qonvgskcb9c2oo5aqnore3u5ugp45n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfqowKCw_lpTNuhNsdIUZBxyQM7S_gd-E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "37512260278-b8qonvgskcb9c2oo5aqnore3u5ugp45n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
