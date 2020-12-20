@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:better_player/better_player.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:file_picker/file_picker.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:image_pickers/image_pickers.dart';
 //import 'package:image_picker/image_picker.dart';
@@ -14,6 +16,7 @@ import 'package:lesrecettesdebousta/constants/widget.dart';
 import 'package:path/path.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sweetalert/sweetalert.dart';
+import 'package:video_compress/video_compress.dart';
 import 'constants/model.dart';
 
 class AjoutRecette extends StatefulWidget {
@@ -33,7 +36,11 @@ class _AjoutRecetteState extends State<AjoutRecette> {
   String imagePricipalUrl;
   var imagePricipal;
   var userA;
+  String videoUrl;
+  File video;
   //bool
+  bool isChargingVideo = false;
+  bool isChargingImage = false;
   bool isCharging = false;
   bool isChargingimageP = false;
   void selectImagePricipal() async {
@@ -44,19 +51,10 @@ class _AjoutRecetteState extends State<AjoutRecette> {
       setState(() {
         imagePricipal = File(result.first.path);
       });
-
-      var bse = basename(imagePricipal.path);
-      var ref =
-          FirebaseStorage.instance.ref().child('Recette/${userA.nom}/$bse');
-      var uploadTask = ref.putFile(imagePricipal);
-      await uploadTask.then((task) async {
-        imagePricipalUrl = await task.ref.getDownloadURL();
-      });
     }
   }
 
   void selectImageEtape(int index) async {
-    var temp = index + 1;
     var rui = await ImagePickers.pickerPaths(
       galleryMode: GalleryMode.image,
     );
@@ -64,16 +62,29 @@ class _AjoutRecetteState extends State<AjoutRecette> {
       setState(() {
         imageEtape[index].imageFile = File(rui.first.path);
       });
-      print('${imageEtape[index].imageFile}');
-      var bse = basename(imageEtape[index].imageFile.path);
-      var ref = FirebaseStorage.instance
-          .ref()
-          .child('Recette/${userA.nom}/Etape/$temp-$bse');
-      var uploadTask = ref.putFile(imageEtape[index].imageFile);
-      await uploadTask.then((task) async {
-        imageEtape[index].imageUrl = await task.ref.getDownloadURL();
+    }
+  }
+
+  void selectVideo() async {
+    var result = await ImagePickers.pickerPaths(
+      galleryMode: GalleryMode.video,
+    );
+
+    if (result != null) {
+      setState(() {
+        isChargingVideo = true;
       });
-      print(imageEtape[index].imageUrl);
+      print('debut');
+      MediaInfo mediaInfo = await VideoCompress.compressVideo(
+        result.first.path,
+        quality: VideoQuality.DefaultQuality,
+        deleteOrigin: false, // It's false by default
+      );
+      setState(() {
+        video = mediaInfo.file;
+
+        isChargingVideo = false;
+      });
     }
   }
 
@@ -88,11 +99,43 @@ class _AjoutRecetteState extends State<AjoutRecette> {
       setState(() {
         isCharging = true;
       });
+      var videoBasename = basename(video.path);
+      var ref = FirebaseStorage.instance
+          .ref()
+          .child('Recette/${titre.text}/$videoBasename');
+
+      var uploadTask = ref.putFile(video);
+      await uploadTask.then((task) async {
+        videoUrl = await task.ref.getDownloadURL();
+      });
+      var imageBasename = basename(imagePricipal.path);
+      var ref1 = FirebaseStorage.instance
+          .ref()
+          .child('Recette/${titre.text}/$imageBasename');
+      var uploadTask1 = ref1.putFile(imagePricipal);
+      await uploadTask1.then((task) async {
+        imagePricipalUrl = await task.ref.getDownloadURL();
+      });
+      var index = 0;
+      imageEtape.forEach((element) async {
+        index++;
+        if (element.imageFile != null) {
+          var bse = basename(element.imageFile.path);
+          var ref = FirebaseStorage.instance
+              .ref()
+              .child('Recette/${titre.text}/Etape/$index-$bse');
+          var uploadTask = ref.putFile(element.imageFile);
+          await uploadTask.then((task) async {
+            element.imageUrl = await task.ref.getDownloadURL();
+          });
+        }
+      });
       var listIng = [];
       listIngredientController.forEach((element) {
         listIng.add(element.text);
       });
       var recette = {
+        'video': videoUrl,
         'titre': titre.text,
         'image': imagePricipalUrl,
         'description': description.text,
@@ -164,7 +207,7 @@ class _AjoutRecetteState extends State<AjoutRecette> {
     //print('${listIngredientController[1].text}');
     // double heighAnimatedIngredient = 53.0 * ingredientCounter;
     return isCharging
-        ? Chargement(colorPrimary, colorSecondary)
+        ? Chargement(colorPrimary, colorThirdy)
         : Scaffold(
             backgroundColor: colorSecondary,
             appBar: AppBar(
@@ -172,7 +215,7 @@ class _AjoutRecetteState extends State<AjoutRecette> {
               backgroundColor: colorPrimary,
               title: Hero(
                   tag: 'addIcon',
-                  child: navBarTitleText('Ajout d\'une recette', Colors.white)),
+                  child: navBarTitleText('Ajout d\'une recette', colorThirdy)),
             ),
             body: SingleChildScrollView(
               child: Container(
@@ -190,7 +233,14 @@ class _AjoutRecetteState extends State<AjoutRecette> {
                     SizedBox(
                       height: 10,
                     ),
-                    Center(child: navBarTitleText('Ingrédients', colorPrimary)),
+                    videoFunctio(),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Center(
+                      child: navBarTitleText('Ingrédients', colorPrimary),
+                    ),
+
                     SizedBox(
                       height: 8,
                     ),
@@ -430,8 +480,9 @@ class _AjoutRecetteState extends State<AjoutRecette> {
       height: 230,
       width: double.infinity,
       child: Card(
+        elevation: 5,
         child: InkWell(
-          onTap: selectImagePricipal,
+          onTap: selectVideo,
           child: isChargingimageP
               ? miniChargement(colorSecondary, colorPrimary)
               : Container(
@@ -446,7 +497,47 @@ class _AjoutRecetteState extends State<AjoutRecette> {
                             Icon(Icons.add_photo_alternate,
                                 color: Colors.black26),
                             Text(
-                              'Ajouter l\'image pricipale',
+                              'Ajouter l\'image principale',
+                              style: TextStyle(
+                                  fontFamily: fontbody, color: Colors.black26),
+                              textAlign: TextAlign.center,
+                            )
+                          ],
+                        ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Container videoFunctio() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      child: Card(
+        elevation: 5,
+        child: InkWell(
+          onTap: selectVideo,
+          child: isChargingVideo
+              ? ChargementLottie(colorPrimary)
+              : Container(
+                  child: (video != null)
+                      ? AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: BetterPlayer.file(
+                            video.path,
+                            betterPlayerConfiguration:
+                                BetterPlayerConfiguration(
+                              aspectRatio: 16 / 9,
+                            ),
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.video_library, color: Colors.black26),
+                            Text(
+                              'Ajouter une vidéo',
                               style: TextStyle(
                                   fontFamily: fontbody, color: Colors.black26),
                               textAlign: TextAlign.center,

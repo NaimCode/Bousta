@@ -57,21 +57,6 @@ class Chargement extends StatelessWidget {
             SizedBox(
               height: 50,
             ),
-            SizedBox(
-              height: 0,
-              child: WavyAnimatedTextKit(
-                textStyle: TextStyle(
-                    fontFamily: fontsecondary,
-                    color: color2,
-                    fontSize: 18,
-                    letterSpacing: 2),
-                text: [
-                  'chargement',
-                  'veuillez patienter',
-                ],
-                //isRepeatingAnimation: true,
-              ),
-            ),
           ],
         ),
       ),
@@ -81,8 +66,8 @@ class Chargement extends StatelessWidget {
 
 class ChargementLottie extends StatelessWidget {
   final Color color1;
-  final Color color2;
-  ChargementLottie(this.color1, this.color2);
+
+  ChargementLottie(this.color1);
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -34,14 +34,17 @@ dependencies:
   flutter_spinkit: ^4.1.2+1
   image_pickers: ^1.0.8+7
   get: ^3.23.1
+  video_compress: ^2.1.0
   #image_picker: ^0.6.7+17
+ 
   flutter_login: ^1.0.14
   logger: ^0.9.4
   flutter_signin_button: ^1.1.0
   lottie: ^0.7.0+1
+  better_player: ^0.0.37
   path: ^1.7.0
   auto_animated: any
-
+  smooth_star_rating: 1.1.1
   provider: ^4.3.2+3
   animated_text_kit: ^3.1.0
   sweetalert: ^0.0.1

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:lesrecettesdebousta/constants/color.dart';
 import 'package:lesrecettesdebousta/constants/staticVariables.dart';
 import 'package:lesrecettesdebousta/constants/widget.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class Recherche extends StatefulWidget {
   @override
@@ -13,6 +14,7 @@ class Recherche extends StatefulWidget {
 }
 
 class _RechercheState extends State<Recherche> {
+  var rating = 6.0;
   final options = LiveOptions(
     // Start animation after (default zero)
     delay: Duration(seconds: 1),
@@ -72,7 +74,7 @@ class _RechercheState extends State<Recherche> {
   @override
   Widget build(BuildContext context) {
     return isCharging
-        ? ChargementLottie(colorSecondary, colorSecondary)
+        ? ChargementLottie(colorSecondary)
         : FutureBuilder(
             future: null,
             builder: (context, snapshot) {
@@ -97,6 +99,24 @@ class _RechercheState extends State<Recherche> {
 // Or raw
 
                     search(),
+                    Center(
+                      child: SmoothStarRating(
+                          allowHalfRating: true,
+                          onRated: (v) {
+                            print('$v');
+                            setState(() {
+                              rating = v;
+                            });
+                          },
+                          starCount: 5,
+                          rating: rating,
+                          size: 40.0,
+                    
+                          isReadOnly: false,
+                          color: Colors.green,
+                          borderColor: Colors.green,
+                          spacing: 0.0),
+                    )
                   ],
                 ),
               );

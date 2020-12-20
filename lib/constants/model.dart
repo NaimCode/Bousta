@@ -18,6 +18,10 @@ String tempUrl;
 Etape temp1 = Etape(imageFile: tempFile, imageUrl: tempUrl);
 
 //class Recette
+class Recette {
+  String titre;
+}
+
 class Chef {
   String uid;
   String nom;

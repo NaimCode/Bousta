@@ -69,12 +69,12 @@ class Bousta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<Authentification>();
-    print(firebaseUser);
+
     return StreamBuilder<User>(
       stream: firebaseUser.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting)
-          return ChargementLottie(colorPrimary, colorThirdy);
+          return Chargement(colorPrimary, colorSecondary);
         if (!snapshot.hasData)
           return Splash();
         else {
@@ -86,7 +86,7 @@ class Bousta extends StatelessWidget {
                   .snapshots(),
               builder: (context, doc) {
                 if (doc.connectionState == ConnectionState.waiting)
-                  return ChargementLottie(colorPrimary, colorThirdy);
+                  return Chargement(colorPrimary, colorSecondary);
                 if (doc.hasError) {
                   Get.rawSnackbar(
                       title: 'Erreur',
@@ -99,7 +99,6 @@ class Bousta extends StatelessWidget {
                 }
                 if (doc.hasData) {
                   var user = doc.data;
-                  print(user['nom']);
 
                   String imageurl = user['image'] ?? profile;
 
@@ -114,7 +113,7 @@ class Bousta extends StatelessWidget {
                     child: Home(),
                   );
                 } else
-                  return ChargementLottie(colorPrimary, colorThirdy);
+                  return Chargement(colorPrimary, colorSecondary);
               });
         }
       },
