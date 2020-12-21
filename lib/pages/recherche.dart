@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lesrecettesdebousta/constants/color.dart';
 import 'package:lesrecettesdebousta/constants/staticVariables.dart';
-import 'package:lesrecettesdebousta/constants/widget.dart';
-import 'package:smooth_star_rating/smooth_star_rating.dart';
+import 'package:provider/provider.dart';
 
 class Recherche extends StatefulWidget {
   @override
@@ -14,56 +13,40 @@ class Recherche extends StatefulWidget {
 }
 
 class _RechercheState extends State<Recherche> {
+  List<String> recettes;
+  List<String> recettesSearch;
+
   var rating = 6.0;
-  final options = LiveOptions(
-    // Start animation after (default zero)
-    delay: Duration(seconds: 1),
 
-    // Show each item through (default 250)
-    showItemInterval: Duration(milliseconds: 500),
-
-    // Animation duration (default 250)
-    showItemDuration: Duration(seconds: 1),
-
-    // Animations starts at 0.05 visible
-    // item fraction in sight (default 0.025)
-    visibleFraction: 0.05,
-
-    // Repeat the animation of the appearance
-    // when scrolling in the opposite direction (default false)
-    // To get the effect as in a showcase for ListView, set true
-    reAnimateOnVisibility: false,
-  );
-  Widget buildAnimatedItem(
-    BuildContext context,
-    int index,
-    Animation<double> animation,
-  ) =>
-      // For example wrap with fade transition
-      FadeTransition(
-        opacity: Tween<double>(
-          begin: 0,
-          end: 1,
-        ).animate(animation),
-        // And slide transition
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: Offset(0, -0.1),
-            end: Offset.zero,
-          ).animate(animation),
-          // Paste you Widget
-          //child: YouWidgetHere(),
-        ),
-      );
   getRecette() async {
     QuerySnapshot qn =
         await FirebaseFirestore.instance.collection('Recette').get();
     qn.docs.forEach((element) {});
   }
 
+  recherche(String search) {
+    List<String> filter = [];
+    if (search.isEmpty)
+      filter = recettes;
+    else {
+      recettesSearch.forEach((element) {
+        if (element.toLowerCase().contains(searchController.text.toLowerCase()))
+          filter.add(element);
+      });
+    }
+    setState(() {
+      recettesSearch = filter;
+    });
+  }
+
+  @override
+  void initState() {
+    //  recettesSearch = context.watch<List<String>>();
+    // TODO: implement initState
+    super.initState();
+  }
   //list
-  List listRecetteInit = [];
-  List listRecette = [];
+
   //future
   var future;
   //controller
@@ -73,54 +56,38 @@ class _RechercheState extends State<Recherche> {
   var isCharging = false;
   @override
   Widget build(BuildContext context) {
-    return isCharging
-        ? ChargementLottie(colorSecondary)
-        : FutureBuilder(
-            future: null,
-            builder: (context, snapshot) {
-              return Scaffold(
-                backgroundColor: colorSecondary,
-                body: Stack(
-                  children: [
-                    LiveGrid.options(
-                      options: options,
-
-                      // Like GridView.builder, but also includes animation property
-                      itemBuilder: buildAnimatedItem,
-
-                      // Other properties correspond to the `ListView.builder` / `ListView.separated` widget
-                      itemCount: 0,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                    ),
-// Or raw
-
-                    search(),
-                    Center(
-                      child: SmoothStarRating(
-                          allowHalfRating: true,
-                          onRated: (v) {
-                            print('$v');
-                            setState(() {
-                              rating = v;
-                            });
-                          },
-                          starCount: 5,
-                          rating: rating,
-                          size: 40.0,
-                    
-                          isReadOnly: false,
-                          color: Colors.green,
-                          borderColor: Colors.green,
-                          spacing: 0.0),
-                    )
-                  ],
-                ),
-              );
-            });
+    recettes = context.watch<List<String>>();
+    if (recettesSearch == null) recettesSearch = recettes;
+    return Scaffold(
+      backgroundColor: colorSecondary,
+      body: Stack(
+        children: [
+          ListView.builder(
+              itemCount: recettesSearch.length,
+              itemBuilder: (context, index) => Center(
+                    child: Text(recettesSearch[index]),
+                  )),
+          search(),
+          // Center(
+          //   child: SmoothStarRating(
+          //       allowHalfRating: true,
+          //       onRated: (v) {
+          //         print('$v');
+          //         setState(() {
+          //           rating = v;
+          //         });
+          //       },
+          //       starCount: 5,
+          //       rating: rating,
+          //       size: 40.0,
+          //       isReadOnly: false,
+          //       color: Colors.green,
+          //       borderColor: Colors.green,
+          //       spacing: 0.0),
+          // )
+        ],
+      ),
+    );
   }
 
   Row search() {
@@ -148,37 +115,52 @@ class _RechercheState extends State<Recherche> {
                               searchAnimated = Get.width - 10;
                             });
                           }))
-                  : Container(
-                      child: TextFormField(
-                        controller: searchController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: new InputDecoration(
-                            suffixIcon: IconButton(
-                              icon: Icon(Icons.close, color: colorSecondary),
-                              onPressed: () {
-                                setState(() {
-                                  searchAnimated = 50;
-                                });
-                              },
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            child: TextFormField(
+                              style: TextStyle(
+                                  color: colorSecondary,
+                                  fontFamily: fontbody,
+                                  letterSpacing: 2,
+                                  fontWeight: FontWeight.bold),
+                              onChanged: recherche,
+                              controller: searchController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: new InputDecoration(
+                                  icon: Padding(
+                                    padding: const EdgeInsets.only(left: 15.0),
+                                    child: Icon(
+                                      Icons.search,
+                                      color: colorSecondary,
+                                    ),
+                                  ),
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  hintStyle: TextStyle(
+                                      color: Colors.white70,
+                                      fontFamily: fontbody),
+                                  contentPadding: EdgeInsets.only(
+                                    left: 15,
+                                    right: 15,
+                                  ),
+                                  hintText: 'Recherche'),
                             ),
-                            icon: Padding(
-                              padding: const EdgeInsets.only(left: 15.0),
-                              child: Icon(
-                                Icons.search,
-                                color: colorSecondary,
-                              ),
-                            ),
-                            border: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            errorBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            hintStyle: TextStyle(
-                                color: Colors.white70, fontFamily: fontbody),
-                            contentPadding:
-                                EdgeInsets.only(left: 15, right: 15, top: 10),
-                            hintText: 'Recherche'),
-                      ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close, color: colorSecondary),
+                          onPressed: () {
+                            setState(() {
+                              searchAnimated = 50;
+                            });
+                          },
+                        ),
+                      ],
                     ),
             )),
       ],

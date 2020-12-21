@@ -33,8 +33,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.blue, // navigation bar color
-        statusBarColor: colorPrimary,
-        statusBarBrightness: Brightness.light // status bar color
+        statusBarColor: colorSecondary,
+        statusBarBrightness: Brightness.dark // status bar color
         ));
     return MultiProvider(
       providers: [
@@ -110,7 +110,25 @@ class Bousta extends StatelessWidget {
                         password: user['password'],
                         admin: user['admin'],
                         uid: user['uid']),
-                    child: Home(),
+                    child: StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('Recette')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          List<String> recettes = [];
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting)
+                            return Chargement(colorPrimary, colorSecondary);
+                          if (snapshot.hasData) {
+                            print(
+                                'Nombre de recette = ${snapshot.data.docs.length}');
+                            snapshot.data.docs.forEach((element) {
+                              recettes.add(element.id);
+                            });
+                          }
+                          return ProxyProvider0(
+                              update: (_, __) => recettes, child: Home());
+                        }),
                   );
                 } else
                   return Chargement(colorPrimary, colorSecondary);

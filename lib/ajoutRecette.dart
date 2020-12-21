@@ -89,7 +89,8 @@ class _AjoutRecetteState extends State<AjoutRecette> {
   }
 
   uploadRecette() async {
-    if (titre.text != '' &&
+    if (imagePricipal != null &&
+        titre.text != '' &&
         categorie.text != '' &&
         description.text != '' &&
         time.text != '' &&
@@ -99,67 +100,74 @@ class _AjoutRecetteState extends State<AjoutRecette> {
       setState(() {
         isCharging = true;
       });
-      var videoBasename = basename(video.path);
-      var ref = FirebaseStorage.instance
-          .ref()
-          .child('Recette/${titre.text}/$videoBasename');
-
-      var uploadTask = ref.putFile(video);
-      await uploadTask.then((task) async {
-        videoUrl = await task.ref.getDownloadURL();
-      });
-      var imageBasename = basename(imagePricipal.path);
-      var ref1 = FirebaseStorage.instance
-          .ref()
-          .child('Recette/${titre.text}/$imageBasename');
-      var uploadTask1 = ref1.putFile(imagePricipal);
-      await uploadTask1.then((task) async {
-        imagePricipalUrl = await task.ref.getDownloadURL();
-      });
-      var index = 0;
-      imageEtape.forEach((element) async {
-        index++;
-        if (element.imageFile != null) {
-          var bse = basename(element.imageFile.path);
+      //supp
+      for (var j = 0; j < 10; j++) {
+        if (video != null) {
+          var videoBasename = basename(video.path);
           var ref = FirebaseStorage.instance
               .ref()
-              .child('Recette/${titre.text}/Etape/$index-$bse');
-          var uploadTask = ref.putFile(element.imageFile);
+              .child('Recette/$j-${titre.text}/$videoBasename');
+
+          var uploadTask = ref.putFile(video);
           await uploadTask.then((task) async {
-            element.imageUrl = await task.ref.getDownloadURL();
+            videoUrl = await task.ref.getDownloadURL();
           });
         }
-      });
-      var listIng = [];
-      listIngredientController.forEach((element) {
-        listIng.add(element.text);
-      });
-      var recette = {
-        'video': videoUrl,
-        'titre': titre.text,
-        'image': imagePricipalUrl,
-        'description': description.text,
-        'personne': personne.text,
-        'time': time.text,
-        'categorie': categorie.text,
-        'ingredienta': listIng,
-      };
+        var imageBasename = basename(imagePricipal.path);
+        var ref1 = FirebaseStorage.instance
+            .ref()
+            .child('Recette/$j-${titre.text}/$imageBasename');
+        var uploadTask1 = ref1.putFile(imagePricipal);
+        await uploadTask1.then((task) async {
+          imagePricipalUrl = await task.ref.getDownloadURL();
+        });
 
-      await FirebaseFirestore.instance
-          .collection('Recette')
-          .doc(titre.text)
-          .set(recette);
-      for (var i = 0; i < listEtapeController.length; i++) {
-        var etape = {
-          'description': listEtapeController[i].text,
-          'image': imageEtape[i].imageUrl,
+        for (var i = 0; i < imageEtape.length; i++) {
+          if (imageEtape[i].imageFile != null) {
+            var bse = basename(imageEtape[i].imageFile.path);
+            var ref = FirebaseStorage.instance
+                .ref()
+                .child('Recette/$j-${titre.text}/Etape/${i + 1}-$bse');
+            var uploadTask = ref.putFile(imageEtape[i].imageFile);
+            await uploadTask.then((task) async {
+              imageEtape[i].imageUrl = await task.ref.getDownloadURL();
+              print(imageEtape[i].imageUrl);
+            });
+          }
+        }
+        var listIng = [];
+        listIngredientController.forEach((element) {
+          listIng.add(element.text);
+        });
+        var recette = {
+          'rater': 0,
+          'rate': 0.0,
+          'video': videoUrl,
+          'titre': titre.text,
+          'image': imagePricipalUrl,
+          'description': description.text,
+          'personne': personne.text,
+          'time': time.text,
+          'categorie': categorie.text,
+          'ingredienta': listIng,
         };
+
         await FirebaseFirestore.instance
             .collection('Recette')
-            .doc(titre.text)
-            .collection('Etape')
-            .doc('${i + 1}')
-            .set(etape);
+            .doc('${j + 1}-${titre.text}')
+            .set(recette);
+        for (var i = 0; i < listEtapeController.length; i++) {
+          var etape = {
+            'description': listEtapeController[i].text,
+            'image': imageEtape[i].imageUrl,
+          };
+          await FirebaseFirestore.instance
+              .collection('Recette')
+              .doc('${j + 1}-${titre.text}')
+              .collection('Etape')
+              .doc('${i + 1}')
+              .set(etape);
+        }
       }
       setState(() {
         listIngredientController.forEach((element) {
@@ -176,6 +184,8 @@ class _AjoutRecetteState extends State<AjoutRecette> {
         time.clear();
         personne.clear();
         description.clear();
+        video = null;
+        videoUrl = null;
         imagePricipalUrl = null;
         imagePricipal = null;
         isCharging = false;
@@ -200,14 +210,14 @@ class _AjoutRecetteState extends State<AjoutRecette> {
   List<Etape> imageEtape = [temp1];
   List<TextFormField> etape = [textEditingEtape(listEtapeController[0])];
   var etapInit = [textEditingEtape(listEtapeController[0])];
-  var imageEtapeInit = [temp1];
+  var imageEtapeInit = [temp2];
   var ingredientInit = [textEditingIngredient(listIngredientController[0])];
   @override
   Widget build(BuildContext context) {
     //print('${listIngredientController[1].text}');
     // double heighAnimatedIngredient = 53.0 * ingredientCounter;
     return isCharging
-        ? Chargement(colorPrimary, colorThirdy)
+        ? ChargementLottie(colorPrimary)
         : Scaffold(
             backgroundColor: colorSecondary,
             appBar: AppBar(
@@ -482,7 +492,7 @@ class _AjoutRecetteState extends State<AjoutRecette> {
       child: Card(
         elevation: 5,
         child: InkWell(
-          onTap: selectVideo,
+          onTap: selectImagePricipal,
           child: isChargingimageP
               ? miniChargement(colorSecondary, colorPrimary)
               : Container(

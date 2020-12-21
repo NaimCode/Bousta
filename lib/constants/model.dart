@@ -16,6 +16,7 @@ List<TextEditingController> listEtapeController = [TextEditingController()];
 File tempFile;
 String tempUrl;
 Etape temp1 = Etape(imageFile: tempFile, imageUrl: tempUrl);
+Etape temp2 = Etape(imageFile: tempFile, imageUrl: tempUrl);
 
 //class Recette
 class Recette {

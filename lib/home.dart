@@ -1,5 +1,6 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,7 +23,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int currentIndex = 1;
+  int currentIndex = 0;
 
   var tab = [Accueil(), Recherche(), Favoris(), Profil()];
   @override
@@ -39,38 +40,44 @@ class _HomeState extends State<Home> {
     });
   }
 
+  List<Color> colorList = [Color(0xff684188), Colors.white, Colors.white];
   @override
   Widget build(BuildContext context) {
     user = context.watch<Chef>();
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: colorPrimary,
-        title: SizedBox(
-          width: 250.0,
-          child: RotateAnimatedTextKit(
-              stopPauseOnTap: true,
-              repeatForever: true,
-              onTap: () {
-                print("Tap Event");
-              },
-              text: ['Bousta'],
-              textStyle: TextStyle(
-                  fontFamily: fontprimary,
-                  fontSize: 28,
-                  letterSpacing: 2,
-                  color: colorThirdy),
-              textAlign: TextAlign.center),
-        ), //navBarTitleText('Bousta', colorThirdy),
-        centerTitle: true,
-        actions: [
-          IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () async {
-                await Authentification(FirebaseAuth.instance).deconnection();
-              }),
-        ],
-      ),
+      backgroundColor: Colors.white, //colorList[currentIndex],
+      appBar: currentIndex == 0
+          ? null
+          : AppBar(
+              backgroundColor: colorPrimary,
+              title: SizedBox(
+                width: 250.0,
+                child: RotateAnimatedTextKit(
+                    stopPauseOnTap: true,
+                    repeatForever: true,
+                    onTap: () {
+                      print("Tap Event");
+                    },
+                    text: ['Bousta'],
+                    textStyle: TextStyle(
+                        fontFamily: fontprimary,
+                        fontSize: 28,
+                        letterSpacing: 2,
+                        color: colorThirdy),
+                    textAlign: TextAlign.center),
+              ), //navBarTitleText('Bousta', colorThirdy),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                    icon: Icon(Icons.logout),
+                    onPressed: () async {
+                      await Authentification(FirebaseAuth.instance)
+                          .deconnection();
+                    }),
+              ],
+            ),
       body: tab[currentIndex],
+
       floatingActionButton: user.admin
           ? FloatingActionButton(
               heroTag: 'addIcon',
@@ -101,25 +108,25 @@ class _HomeState extends State<Home> {
         inkColor: Colors.black12, //optional, uses theme color if not specified
         items: [
           BubbleBottomBarItem(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: Colors.amber[900],
               icon: Icon(
                 Icons.home,
                 color: Colors.black,
               ),
               activeIcon: Icon(
                 Icons.home,
-                color: Colors.deepPurple,
+                color: Colors.amber[900],
               ),
               title: Text("Accueil")),
           BubbleBottomBarItem(
-              backgroundColor: Colors.greenAccent,
+              backgroundColor: Colors.cyanAccent[700],
               icon: Icon(
                 Icons.food_bank,
                 color: Colors.black,
               ),
               activeIcon: Icon(
                 Icons.food_bank,
-                color: Colors.greenAccent,
+                color: Colors.cyanAccent[700],
               ),
               title: Text("Recettes")),
           BubbleBottomBarItem(

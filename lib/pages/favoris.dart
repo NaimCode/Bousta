@@ -10,7 +10,7 @@ class _FavorisState extends State<Favoris> {
   Widget build(BuildContext context) {
     return Container(
       child: Center(
-        child: Text('Favoris'),
+        child: Text('null'),
       ),
     );
   }
