@@ -129,6 +129,8 @@ class Authentification {
       try {
         await user.user.sendEmailVerification();
         String image;
+        List<String> favori = [], historique = [];
+
         bool admin = false;
         var utilisateurs = {
           'nom': nom,
@@ -137,6 +139,8 @@ class Authentification {
           'image': image,
           'admin': admin,
           'uid': user.user.uid,
+          'favori': favori,
+          'historique': historique,
         };
 
         await firestoreinstance

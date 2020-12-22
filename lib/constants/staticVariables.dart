@@ -14,6 +14,7 @@ var placeholder = 'assets/placeholder.png';
 var profile = 'assets/profile.png';
 var splashImage = 'assets/cookFemmeDebout.json';
 var accueilLottie = 'assets/cooking.json';
+var favoriteAnimated = 'assets/favorite.json';
 //Font
 var fontprimary = 'Lobster';
 var fontsecondary = 'Kaushan';

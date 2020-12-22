@@ -23,7 +23,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int currentIndex = 0;
+  int currentIndex = 1;
 
   var tab = [Accueil(), Recherche(), Favoris(), Profil()];
   @override

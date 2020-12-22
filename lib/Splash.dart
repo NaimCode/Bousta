@@ -131,24 +131,30 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
           setState(() {
             erreurMailE = true;
           });
+          setState(() {
+            isCharging = false;
+          });
           break;
         case 'Le mot de passe est trop faible, minimum 6 caratères':
           setState(() {
             erreurPasswordE = true;
             erreurMailE = false;
           });
+          setState(() {
+            isCharging = false;
+          });
           break;
         case 'L\'Email est invalide':
           setState(() {
             erreurMailE = true;
           });
+          setState(() {
+            isCharging = false;
+          });
           break;
         default:
       }
     }
-    setState(() {
-      isCharging = false;
-    });
   }
 
 //bool

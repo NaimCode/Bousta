@@ -24,6 +24,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
+  //await Authentification(FirebaseAuth.instance).deconnection();
   runApp(MyApp());
 }
 

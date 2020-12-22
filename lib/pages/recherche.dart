@@ -1,11 +1,16 @@
 import 'package:auto_animated/auto_animated.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'package:get/get.dart';
 import 'package:lesrecettesdebousta/constants/color.dart';
+import 'package:lesrecettesdebousta/constants/model.dart';
 import 'package:lesrecettesdebousta/constants/staticVariables.dart';
+import 'package:lesrecettesdebousta/constants/widget.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class Recherche extends StatefulWidget {
   @override
@@ -15,8 +20,6 @@ class Recherche extends StatefulWidget {
 class _RechercheState extends State<Recherche> {
   List<String> recettes;
   List<String> recettesSearch;
-
-  var rating = 6.0;
 
   getRecette() async {
     QuerySnapshot qn =
@@ -59,32 +62,136 @@ class _RechercheState extends State<Recherche> {
     recettes = context.watch<List<String>>();
     if (recettesSearch == null) recettesSearch = recettes;
     return Scaffold(
-      backgroundColor: colorSecondary,
+      // backgroundColor: colorSecondary,
       body: Stack(
         children: [
-          ListView.builder(
-              itemCount: recettesSearch.length,
-              itemBuilder: (context, index) => Center(
-                    child: Text(recettesSearch[index]),
-                  )),
+          recettesSearch.isEmpty
+              ? pasDeRecetteTrouvee()
+              : ListView.builder(
+                  itemCount: recettesSearch.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 2, horizontal: 4),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        child: FutureBuilder(
+                            future: FirebaseFirestore.instance
+                                .collection('Recette')
+                                .doc(recettesSearch[index])
+                                .get(),
+                            builder: (context, snapR) {
+                              if (snapR.connectionState ==
+                                  ConnectionState.waiting)
+                                return SpinKitChasingDots(
+                                  color: colorPrimary,
+                                  size: 30,
+                                );
+                              //var rate=
+                              Recette recipe;
+                              double rating;
+                              bool checkFav;
+                              if (snapR.hasData) {
+                                recipe = Recette.fromDoc(snapR.data);
+                                (recipe.rater == 0)
+                                    ? rating = 0
+                                    : rating = recipe.rate / recipe.rater;
+                              }
+                              return InkWell(
+                                onTap: () {},
+                                child: Container(
+                                  height: 120,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          flex: 2,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: NetworkImage(
+                                                        recipe.image),
+                                                    fit: BoxFit.cover)),
+                                            // child: Image.network(
+                                            //   snapR.data['image'],
+                                            //   fit: BoxFit.cover,
+                                            // ),
+                                          )),
+                                      Expanded(
+                                          flex: 3,
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.only(
+                                                    left: 5,
+                                                    bottom: 0,
+                                                    right: 5),
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    SelectableText(
+                                                      recipe.titre,
+                                                      style: TextStyle(
+                                                          fontFamily: fontbody,
+                                                          letterSpacing: 2,
+                                                          fontSize: 18,
+                                                          color: colorPrimary
+                                                              .shade900,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                      textAlign: TextAlign.left,
+                                                    ),
+                                                    SizedBox(
+                                                        child: Rate(rating,
+                                                            recipe.rater),
+                                                        height: 20),
+                                                    PersonTimer(recipe: recipe),
+                                                    Text(
+                                                      recipe.categorie,
+                                                      style: TextStyle(
+                                                          fontSize: 17,
+                                                          fontFamily: fontbody,
+                                                          letterSpacing: 2,
+                                                          color:
+                                                              Colors.black87),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                      ),
+                    );
+                  }),
           search(),
-          // Center(
-          //   child: SmoothStarRating(
-          //       allowHalfRating: true,
-          //       onRated: (v) {
-          //         print('$v');
-          //         setState(() {
-          //           rating = v;
-          //         });
-          //       },
-          //       starCount: 5,
-          //       rating: rating,
-          //       size: 40.0,
-          //       isReadOnly: false,
-          //       color: Colors.green,
-          //       borderColor: Colors.green,
-          //       spacing: 0.0),
-          // )
+        ],
+      ),
+    );
+  }
+
+  Center pasDeRecetteTrouvee() {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Aucune recette ',
+            style: TextStyle(),
+          ),
+          Text(
+            searchController.text,
+            style: TextStyle(fontFamily: fontbody, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -164,6 +271,68 @@ class _RechercheState extends State<Recherche> {
                     ),
             )),
       ],
+    );
+  }
+}
+
+class PersonTimer extends StatelessWidget {
+  const PersonTimer({
+    Key key,
+    @required this.recipe,
+  }) : super(key: key);
+
+  final Recette recipe;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 20,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.people_alt_outlined,
+                  size: 20,
+                  color: Colors.black38,
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                Text(
+                  recipe.personne,
+                  style: TextStyle(
+                    color: Colors.black54,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.timer_outlined,
+                  size: 20,
+                  color: Colors.black38,
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                Text(
+                  recipe.time,
+                  style: TextStyle(
+                    color: Colors.black54,
+                  ),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }

@@ -46,18 +46,9 @@ class Chargement extends StatelessWidget {
     return Scaffold(
       body: Container(
         color: color1,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SpinKitFoldingCube(
-              color: color2,
-              size: 40,
-            ),
-            SizedBox(
-              height: 50,
-            ),
-          ],
+        child: SpinKitChasingDots(
+          color: color2,
+          size: 40,
         ),
       ),
     );
@@ -193,5 +184,44 @@ class BigTitle extends StatelessWidget {
         ),
       )),
     );
+  }
+}
+
+//rating
+class Rate extends StatelessWidget {
+  var rating;
+  var rater;
+  Rate(this.rating, this.rater);
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          bool check = (rating >= index + 1);
+          return index == 5
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '($rating)',
+                      style: TextStyle(
+                        color: Colors.black26,
+                        fontSize: 14,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      '$rater',
+                      style: TextStyle(color: Colors.black26, fontSize: 12),
+                    )
+                  ],
+                )
+              : Icon(
+                  Icons.star_rate,
+                  color: Colors.yellow.withOpacity(check ? 1 : 0.3),
+                  size: 20,
+                );
+        });
   }
 }
