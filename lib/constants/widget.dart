@@ -189,7 +189,7 @@ class BigTitle extends StatelessWidget {
 
 //rating
 class Rate extends StatelessWidget {
-  var rating;
+  double rating;
   var rater;
   Rate(this.rating, this.rater);
   @override
@@ -204,7 +204,7 @@ class Rate extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '($rating)',
+                      '(${rating.toPrecision(1)})',
                       style: TextStyle(
                         color: Colors.black26,
                         fontSize: 14,

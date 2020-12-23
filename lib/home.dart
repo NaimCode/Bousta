@@ -3,6 +3,7 @@ import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lesrecettesdebousta/pages/favoris.dart';
 import 'package:lesrecettesdebousta/pages/profil.dart';
@@ -44,38 +45,14 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     user = context.watch<Chef>();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        systemNavigationBarColor: colorPrimary, // navigation bar color
+        statusBarColor: colorPrimary,
+        statusBarBrightness: Brightness.dark // status bar color
+        ));
     return Scaffold(
       backgroundColor: Colors.white, //colorList[currentIndex],
-      appBar: currentIndex == 0
-          ? null
-          : AppBar(
-              backgroundColor: colorPrimary,
-              title: SizedBox(
-                width: 250.0,
-                child: RotateAnimatedTextKit(
-                    stopPauseOnTap: true,
-                    repeatForever: true,
-                    onTap: () {
-                      print("Tap Event");
-                    },
-                    text: ['Bousta'],
-                    textStyle: TextStyle(
-                        fontFamily: fontprimary,
-                        fontSize: 28,
-                        letterSpacing: 2,
-                        color: colorThirdy),
-                    textAlign: TextAlign.center),
-              ), //navBarTitleText('Bousta', colorThirdy),
-              centerTitle: true,
-              actions: [
-                IconButton(
-                    icon: Icon(Icons.logout),
-                    onPressed: () async {
-                      await Authentification(FirebaseAuth.instance)
-                          .deconnection();
-                    }),
-              ],
-            ),
+
       body: tab[currentIndex],
 
       floatingActionButton: user.admin
@@ -119,27 +96,32 @@ class _HomeState extends State<Home> {
               ),
               title: Text("Accueil")),
           BubbleBottomBarItem(
-              backgroundColor: Colors.cyanAccent[700],
+              backgroundColor: Colors.red[900],
               icon: Icon(
                 Icons.food_bank,
                 color: Colors.black,
               ),
               activeIcon: Icon(
                 Icons.food_bank,
-                color: Colors.cyanAccent[700],
+                color: Colors.red[900],
               ),
               title: Text("Recettes")),
           BubbleBottomBarItem(
               backgroundColor: Colors.red[900],
-              icon: Icon(
-                Icons.favorite,
-                color: Colors.black,
+              icon: CircleAvatar(
+                backgroundImage: user.image == null
+                    ? AssetImage(profile)
+                    : NetworkImage(user.image),
               ),
-              activeIcon: Icon(
-                Icons.favorite,
-                color: Colors.red[900],
+              activeIcon: CircleAvatar(
+                backgroundImage: user.image == null
+                    ? AssetImage(profile)
+                    : NetworkImage(user.image),
               ),
-              title: Text("Favoris")),
+              title: Text(
+                user.nom,
+                overflow: TextOverflow.ellipsis,
+              )),
           BubbleBottomBarItem(
               backgroundColor: Colors.indigo,
               icon: Icon(Icons.info, color: Colors.black),

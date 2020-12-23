@@ -29,9 +29,10 @@ class Recette {
   String image;
   String video;
   double rate;
+  String uid;
   int rater;
 
-  Recette.fromDoc(var data) {
+  Recette.fromDoc(var data, String id) {
     titre = data['titre'];
     description = data['description'];
     time = data['time'];
@@ -40,6 +41,7 @@ class Recette {
     rate = data['rate'];
     rater = data['rater'];
     image = data['image'];
+    uid = id;
     categorie = data['categorie'];
     video = data['video'] ?? null;
   }
@@ -53,7 +55,7 @@ class Chef {
   String image;
 
   bool admin;
-  List<String> favori, historique;
+  List favori, historique;
   Chef.fromMap(Map<String, dynamic> data) {
     nom = data['nom'];
     uid = data['ville'];
@@ -64,6 +66,23 @@ class Chef {
     historique = data['historique'];
     admin = data['admin'];
   }
-
-  Chef({this.uid, this.nom, this.password, this.email, this.image, this.admin});
+  Chef.fromDoc(var data) {
+    nom = data['nom'];
+    uid = data['ville'];
+    image = data['image'];
+    email = data['email'];
+    password = data['password'];
+    favori = data['favori'];
+    historique = data['historique'];
+    admin = data['admin'];
+  }
+  Chef(
+      {this.uid,
+      this.nom,
+      this.password,
+      this.email,
+      this.image,
+      this.admin,
+      this.favori,
+      this.historique});
 }

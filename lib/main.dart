@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:lesrecettesdebousta/pages/recette.dart';
 import 'package:provider/provider.dart';
 
 import 'Splash.dart';
@@ -32,11 +33,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.blue, // navigation bar color
-        statusBarColor: colorSecondary,
-        statusBarBrightness: Brightness.dark // status bar color
-        ));
     return MultiProvider(
       providers: [
         Provider<Authentification>(
@@ -59,6 +55,10 @@ class MyApp extends StatelessWidget {
           GetPage(
             name: '/add',
             page: () => AjoutRecette(),
+          ),
+          GetPage(
+            name: '/recette',
+            page: () => RecettePage(),
           ),
         ],
       ),
@@ -101,36 +101,19 @@ class Bousta extends StatelessWidget {
                 if (doc.hasData) {
                   var user = doc.data;
 
-                  String imageurl = user['image'] ?? profile;
+                  // String imageurl = user['image'] ?? profile;
 
                   return ProxyProvider0(
-                    update: (_, __) => Chef(
-                        nom: user['nom'],
-                        image: imageurl,
-                        email: user['email'],
-                        password: user['password'],
-                        admin: user['admin'],
-                        uid: user['uid']),
-                    child: StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('Recette')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          List<String> recettes = [];
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting)
-                            return Chargement(colorPrimary, colorSecondary);
-                          if (snapshot.hasData) {
-                            print(
-                                'Nombre de recette = ${snapshot.data.docs.length}');
-                            snapshot.data.docs.forEach((element) {
-                              recettes.add(element.id);
-                            });
-                          }
-                          return ProxyProvider0(
-                              update: (_, __) => recettes, child: Home());
-                        }),
-                  );
+                      update: (_, __) => Chef(
+                          nom: user['nom'],
+                          image: user['image'],
+                          email: user['email'],
+                          password: user['password'],
+                          admin: user['admin'],
+                          historique: user['historique'],
+                          favori: user['favori'],
+                          uid: user['uid']),
+                      child: Home());
                 } else
                   return Chargement(colorPrimary, colorSecondary);
               });

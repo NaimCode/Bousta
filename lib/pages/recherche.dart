@@ -1,5 +1,7 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:auto_animated/auto_animated.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -8,6 +10,7 @@ import 'package:lesrecettesdebousta/constants/color.dart';
 import 'package:lesrecettesdebousta/constants/model.dart';
 import 'package:lesrecettesdebousta/constants/staticVariables.dart';
 import 'package:lesrecettesdebousta/constants/widget.dart';
+import 'package:lesrecettesdebousta/service/authentification.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
@@ -18,22 +21,34 @@ class Recherche extends StatefulWidget {
 }
 
 class _RechercheState extends State<Recherche> {
-  List<String> recettes;
-  List<String> recettesSearch;
-
+  List<Recette> recettes = [];
+  List<Recette> recettesSearch = [];
+  Chef user;
   getRecette() async {
     QuerySnapshot qn =
         await FirebaseFirestore.instance.collection('Recette').get();
-    qn.docs.forEach((element) {});
+    qn.docs.forEach((element) {
+      recettes.add(Recette.fromDoc(element.data(), element.id));
+    });
+    setState(() {
+      recettesSearch = recettes;
+    });
+
+    return 'Complete';
   }
 
-  recherche(String search) {
-    List<String> filter = [];
-    if (search.isEmpty)
+  recherche() {
+    List<Recette> filter = [];
+    if (searchController.text.isEmpty)
       filter = recettes;
     else {
       recettesSearch.forEach((element) {
-        if (element.toLowerCase().contains(searchController.text.toLowerCase()))
+        if (element.titre
+                .toLowerCase()
+                .contains(searchController.text.toLowerCase()) ||
+            element.categorie
+                .toLowerCase()
+                .contains(searchController.text.toLowerCase()))
           filter.add(element);
       });
     }
@@ -44,9 +59,20 @@ class _RechercheState extends State<Recherche> {
 
   @override
   void initState() {
+    future = getRecette();
+    searchController.addListener(recherche);
     //  recettesSearch = context.watch<List<String>>();
     // TODO: implement initState
     super.initState();
+  }
+
+  getFav(List list, String rec) {
+    // if (list != null)
+
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] == rec) return true;
+    }
+    return false;
   }
   //list
 
@@ -59,47 +85,68 @@ class _RechercheState extends State<Recherche> {
   var isCharging = false;
   @override
   Widget build(BuildContext context) {
-    recettes = context.watch<List<String>>();
-    if (recettesSearch == null) recettesSearch = recettes;
-    return Scaffold(
-      // backgroundColor: colorSecondary,
-      body: Stack(
-        children: [
-          recettesSearch.isEmpty
-              ? pasDeRecetteTrouvee()
-              : ListView.builder(
-                  itemCount: recettesSearch.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 2, horizontal: 4),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                        child: FutureBuilder(
-                            future: FirebaseFirestore.instance
-                                .collection('Recette')
-                                .doc(recettesSearch[index])
-                                .get(),
-                            builder: (context, snapR) {
-                              if (snapR.connectionState ==
-                                  ConnectionState.waiting)
-                                return SpinKitChasingDots(
-                                  color: colorPrimary,
-                                  size: 30,
-                                );
-                              //var rate=
-                              Recette recipe;
-                              double rating;
-                              bool checkFav;
-                              if (snapR.hasData) {
-                                recipe = Recette.fromDoc(snapR.data);
-                                (recipe.rater == 0)
-                                    ? rating = 0
-                                    : rating = recipe.rate / recipe.rater;
-                              }
-                              return InkWell(
-                                onTap: () {},
+    user = context.watch<Chef>();
+    return FutureBuilder(
+        future: future,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return SpinKitChasingDots(
+              color: colorPrimary,
+              size: 30,
+            );
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor: colorPrimary,
+              title: SizedBox(
+                width: 250.0,
+                child: RotateAnimatedTextKit(
+                    stopPauseOnTap: true,
+                    repeatForever: true,
+                    onTap: () {
+                      print("Tap Event");
+                    },
+                    text: ['Bousta'],
+                    textStyle: TextStyle(
+                        fontFamily: fontprimary,
+                        fontSize: 28,
+                        letterSpacing: 2,
+                        color: colorThirdy),
+                    textAlign: TextAlign.center),
+              ), //navBarTitleText('Bousta', colorThirdy),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                    icon: Icon(Icons.logout),
+                    onPressed: () async {
+                      await Authentification(FirebaseAuth.instance)
+                          .deconnection();
+                    }),
+              ],
+            ),
+            // backgroundColor: colorSecondary,
+            body: Stack(
+              children: [
+                recettesSearch.isEmpty
+                    ? pasDeRecetteTrouvee()
+                    : ListView.builder(
+                        itemCount: recettesSearch.length,
+                        itemBuilder: (context, index) {
+                          Recette recipe = recettesSearch[index];
+                          double rating;
+                          bool checkFav = getFav(user.favori, recipe.uid);
+
+                          (recipe.rater == 0)
+                              ? rating = 0
+                              : rating = recipe.rate / recipe.rater;
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 2, horizontal: 4),
+                            child: Card(
+                              child: InkWell(
+                                onTap: () {
+                                  Get.toNamed('/recette', arguments: recipe);
+                                },
                                 child: Container(
                                   height: 120,
                                   child: Row(
@@ -107,16 +154,22 @@ class _RechercheState extends State<Recherche> {
                                       Expanded(
                                           flex: 2,
                                           child: Container(
-                                            decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                    image: NetworkImage(
-                                                        recipe.image),
-                                                    fit: BoxFit.cover)),
-                                            // child: Image.network(
-                                            //   snapR.data['image'],
-                                            //   fit: BoxFit.cover,
-                                            // ),
-                                          )),
+                                              child: Hero(
+                                            tag: recipe.uid,
+                                            child: Image.network(
+                                              recipe.image,
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (context, child,
+                                                  loadingProgress) {
+                                                if (loadingProgress == null)
+                                                  return child;
+                                                return SpinKitChasingDots(
+                                                  color: colorPrimary,
+                                                  size: 26,
+                                                );
+                                              },
+                                            ),
+                                          ))),
                                       Expanded(
                                           flex: 3,
                                           child: Stack(
@@ -167,15 +220,15 @@ class _RechercheState extends State<Recherche> {
                                     ],
                                   ),
                                 ),
-                              );
-                            }),
-                      ),
-                    );
-                  }),
-          search(),
-        ],
-      ),
-    );
+                              ),
+                            ),
+                          );
+                        }),
+                search(),
+              ],
+            ),
+          );
+        });
   }
 
   Center pasDeRecetteTrouvee() {
@@ -232,7 +285,6 @@ class _RechercheState extends State<Recherche> {
                                   fontFamily: fontbody,
                                   letterSpacing: 2,
                                   fontWeight: FontWeight.bold),
-                              onChanged: recherche,
                               controller: searchController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: new InputDecoration(

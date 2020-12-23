@@ -23,23 +23,9 @@ class _AccueilState extends State<Accueil> {
 
   @override
   Widget build(BuildContext context) {
-    recettes = context.watch<List<String>>();
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Center(
-              child: Lottie.asset(accueilLottie,
-                  height: 300, fit: BoxFit.fitWidth)),
-          Expanded(
-              child: ListView.builder(
-                  itemCount: recettes.length,
-                  itemBuilder: (context, index) => Center(
-                        child: Text(recettes[index]),
-                      )))
-        ],
-      ),
+      body: Column(),
     );
   }
 }

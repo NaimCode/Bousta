@@ -43,6 +43,7 @@ dependencies:
   lottie: ^0.7.0+1
   better_player: ^0.0.37
   path: ^1.7.0
+  expandable_card: ^0.0.3+1
   auto_animated: any
   smooth_star_rating: 1.1.1
   provider: ^4.3.2+3
