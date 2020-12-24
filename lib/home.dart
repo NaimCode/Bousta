@@ -24,12 +24,31 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int currentIndex = 1;
+  int currentIndex = 2;
+  var future;
+  //List<Recette> recettes = [];
 
-  var tab = [Accueil(), Recherche(), Favoris(), Profil()];
+  getBody(int index, List<Recette> v) {
+    switch (index) {
+      case 0:
+        return Accueil();
+        break;
+      case 1:
+        return Recherche(v);
+        break;
+      case 2:
+        return Profil(v);
+        break;
+      case 3:
+        return Favoris();
+        break;
+      default:
+    }
+  }
+
   @override
   void initState() {
-    //  userCurrent = user;
+    future = getRecette();
     // TODO: implement initState
     super.initState();
   }
@@ -41,6 +60,17 @@ class _HomeState extends State<Home> {
     });
   }
 
+  getRecette() async {
+    List<Recette> list = [];
+    QuerySnapshot qn =
+        await FirebaseFirestore.instance.collection('Recette').get();
+    qn.docs.forEach((element) {
+      list.add(Recette.fromDoc(element.data(), element.id));
+    });
+
+    return list;
+  }
+
   List<Color> colorList = [Color(0xff684188), Colors.white, Colors.white];
   @override
   Widget build(BuildContext context) {
@@ -50,85 +80,95 @@ class _HomeState extends State<Home> {
         statusBarColor: colorPrimary,
         statusBarBrightness: Brightness.dark // status bar color
         ));
-    return Scaffold(
-      backgroundColor: Colors.white, //colorList[currentIndex],
+    return FutureBuilder(
+        future: future,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return Chargement(colorPrimary, colorSecondary);
+          return Scaffold(
+            backgroundColor: Colors.white, //colorList[currentIndex],
 
-      body: tab[currentIndex],
+            body: getBody(currentIndex, snapshot.data),
 
-      floatingActionButton: user.admin
-          ? FloatingActionButton(
-              heroTag: 'addIcon',
-              onPressed: () {
-                Get.toNamed('/add');
-              },
-              child: Icon(Icons.add),
-              backgroundColor: Colors.amber,
-            )
-          : FloatingActionButton(
-              heroTag: null,
-              onPressed: () {
-                //Get.toNamed('/add');
-              },
-              child: Icon(Icons.share),
-              backgroundColor: Colors.amber,
+            floatingActionButton: user.admin
+                ? FloatingActionButton(
+                    heroTag: 'addIcon',
+                    onPressed: () {
+                      Get.toNamed('/add');
+                    },
+                    child: Icon(Icons.add),
+                    backgroundColor: Colors.amber,
+                  )
+                : FloatingActionButton(
+                    heroTag: null,
+                    onPressed: () {
+                      //Get.toNamed('/add');
+                    },
+                    child: Icon(Icons.share),
+                    backgroundColor: Colors.amber,
+                  ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
+            bottomNavigationBar: BubbleBottomBar(
+              opacity: .2,
+              currentIndex: currentIndex, backgroundColor: colorSecondary,
+              onTap: changePage,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              elevation: 8,
+              fabLocation: BubbleBottomBarFabLocation.end, //new
+              hasNotch: true, //new
+              hasInk: true, //new, gives a cute ink effect
+              inkColor:
+                  Colors.black12, //optional, uses theme color if not specified
+              items: [
+                BubbleBottomBarItem(
+                    backgroundColor: Colors.amber[900],
+                    icon: Icon(
+                      Icons.home,
+                      color: Colors.black,
+                    ),
+                    activeIcon: Icon(
+                      Icons.home,
+                      color: Colors.amber[900],
+                    ),
+                    title: Text("Accueil")),
+                BubbleBottomBarItem(
+                    backgroundColor: Colors.red[900],
+                    icon: Icon(
+                      Icons.food_bank,
+                      color: Colors.black,
+                    ),
+                    activeIcon: Icon(
+                      Icons.food_bank,
+                      color: Colors.red[900],
+                    ),
+                    title: Text("Recettes")),
+                BubbleBottomBarItem(
+                    backgroundColor: Colors.indigo,
+                    icon: Icon(Icons.bookmarks, color: Colors.black),
+                    activeIcon: Icon(Icons.bookmarks, color: Colors.indigo),
+                    title: Text("Activités")),
+                BubbleBottomBarItem(
+                    backgroundColor: Colors.red[900],
+                    icon: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      backgroundImage: user.image == null
+                          ? AssetImage(profile)
+                          : NetworkImage(user.image),
+                    ),
+                    activeIcon: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      backgroundImage: user.image == null
+                          ? AssetImage(profile)
+                          : NetworkImage(user.image),
+                    ),
+                    title: Text(
+                      user.nom,
+                      overflow: TextOverflow.ellipsis,
+                    )),
+              ],
             ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      bottomNavigationBar: BubbleBottomBar(
-        opacity: .2,
-        currentIndex: currentIndex, backgroundColor: colorSecondary,
-        onTap: changePage,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        elevation: 8,
-        fabLocation: BubbleBottomBarFabLocation.end, //new
-        hasNotch: true, //new
-        hasInk: true, //new, gives a cute ink effect
-        inkColor: Colors.black12, //optional, uses theme color if not specified
-        items: [
-          BubbleBottomBarItem(
-              backgroundColor: Colors.amber[900],
-              icon: Icon(
-                Icons.home,
-                color: Colors.black,
-              ),
-              activeIcon: Icon(
-                Icons.home,
-                color: Colors.amber[900],
-              ),
-              title: Text("Accueil")),
-          BubbleBottomBarItem(
-              backgroundColor: Colors.red[900],
-              icon: Icon(
-                Icons.food_bank,
-                color: Colors.black,
-              ),
-              activeIcon: Icon(
-                Icons.food_bank,
-                color: Colors.red[900],
-              ),
-              title: Text("Recettes")),
-          BubbleBottomBarItem(
-              backgroundColor: Colors.red[900],
-              icon: CircleAvatar(
-                backgroundImage: user.image == null
-                    ? AssetImage(profile)
-                    : NetworkImage(user.image),
-              ),
-              activeIcon: CircleAvatar(
-                backgroundImage: user.image == null
-                    ? AssetImage(profile)
-                    : NetworkImage(user.image),
-              ),
-              title: Text(
-                user.nom,
-                overflow: TextOverflow.ellipsis,
-              )),
-          BubbleBottomBarItem(
-              backgroundColor: Colors.indigo,
-              icon: Icon(Icons.info, color: Colors.black),
-              activeIcon: Icon(Icons.info, color: Colors.indigo),
-              title: Text("Information"))
-        ],
-      ),
-    );
+          );
+        });
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 List<TextEditingController> listIngredientController = [
@@ -85,4 +86,17 @@ class Chef {
       this.admin,
       this.favori,
       this.historique});
+}
+
+class Discussion {
+  String userID;
+  String message;
+  Timestamp date;
+  Discussion({this.userID, this.message, this.date});
+}
+
+class RecetteDetail {
+  Chef user;
+  Recette recette;
+  RecetteDetail(this.user, this.recette);
 }

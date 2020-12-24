@@ -330,47 +330,44 @@ class _AjoutRecetteState extends State<AjoutRecette> {
   Flexible ingredientListViez() {
     return Flexible(
       fit: FlexFit.loose,
-      child: AnimatedContainer(
-        height: 65.0 * ingredient.length,
-        duration: Duration(milliseconds: 100),
-        child: ListView.builder(
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: ingredient.length,
-            itemBuilder: (context, index) {
-              return Container(
-                margin: EdgeInsets.only(bottom: 5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    //                    <--- top side
-                    color: colorPrimary,
-                    width: 2.0,
+      child: ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: ingredient.length,
+          itemBuilder: (context, index) {
+            return Container(
+              margin: EdgeInsets.only(bottom: 5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  //                    <--- top side
+                  color: colorPrimary,
+                  width: 2.0,
+                ),
+              ),
+              child: ListTile(
+                trailing: IconButton(
+                  icon: Icon(Icons.remove_circle, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      ingredient.remove(ingredient[index]);
+                      print('${listIngredientController[index].text}');
+                      listIngredientController
+                          .remove(listIngredientController[index]);
+                    });
+                  },
+                ),
+                leading: CircleAvatar(
+                  backgroundColor: colorPrimary,
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
-                child: ListTile(
-                  trailing: IconButton(
-                    icon: Icon(Icons.remove_circle, color: Colors.red),
-                    onPressed: () {
-                      setState(() {
-                        ingredient.remove(ingredient[index]);
-                        print('${listIngredientController[index].text}');
-                        listIngredientController
-                            .remove(listIngredientController[index]);
-                      });
-                    },
-                  ),
-                  leading: CircleAvatar(
-                    backgroundColor: colorPrimary,
-                    child: Text(
-                      '${index + 1}',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                  title: ingredient[index],
-                ),
-              );
-            }),
-      ),
+                title: ingredient[index],
+              ),
+            );
+          }),
     );
   }
 
@@ -378,9 +375,9 @@ class _AjoutRecetteState extends State<AjoutRecette> {
     return Flexible(
       fit: FlexFit.loose,
       child: AnimatedContainer(
-        height: 338.0 * etape.length,
         duration: Duration(milliseconds: 100),
         child: ListView.builder(
+            shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             itemCount: etape.length,
             itemBuilder: (context, index) {

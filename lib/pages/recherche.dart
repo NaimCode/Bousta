@@ -16,6 +16,8 @@ import 'package:provider/provider.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class Recherche extends StatefulWidget {
+  final List<Recette> recettes;
+  Recherche(this.recettes);
   @override
   _RechercheState createState() => _RechercheState();
 }
@@ -59,7 +61,9 @@ class _RechercheState extends State<Recherche> {
 
   @override
   void initState() {
-    future = getRecette();
+    recettes = widget.recettes;
+    recettesSearch = widget.recettes;
+    //future = getRecette();
     searchController.addListener(recherche);
     //  recettesSearch = context.watch<List<String>>();
     // TODO: implement initState
@@ -87,148 +91,137 @@ class _RechercheState extends State<Recherche> {
   Widget build(BuildContext context) {
     user = context.watch<Chef>();
     return FutureBuilder(
-        future: future,
+        // future: future,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
-            return SpinKitChasingDots(
-              color: colorPrimary,
-              size: 30,
-            );
-          return Scaffold(
-            appBar: AppBar(
-              backgroundColor: colorPrimary,
-              title: SizedBox(
-                width: 250.0,
-                child: RotateAnimatedTextKit(
-                    stopPauseOnTap: true,
-                    repeatForever: true,
-                    onTap: () {
-                      print("Tap Event");
-                    },
-                    text: ['Bousta'],
-                    textStyle: TextStyle(
-                        fontFamily: fontprimary,
-                        fontSize: 28,
-                        letterSpacing: 2,
-                        color: colorThirdy),
-                    textAlign: TextAlign.center),
-              ), //navBarTitleText('Bousta', colorThirdy),
-              centerTitle: true,
-              actions: [
-                IconButton(
-                    icon: Icon(Icons.logout),
-                    onPressed: () async {
-                      await Authentification(FirebaseAuth.instance)
-                          .deconnection();
-                    }),
-              ],
-            ),
-            // backgroundColor: colorSecondary,
-            body: Stack(
-              children: [
-                recettesSearch.isEmpty
-                    ? pasDeRecetteTrouvee()
-                    : ListView.builder(
-                        itemCount: recettesSearch.length,
-                        itemBuilder: (context, index) {
-                          Recette recipe = recettesSearch[index];
-                          double rating;
-                          bool checkFav = getFav(user.favori, recipe.uid);
+      if (snapshot.connectionState == ConnectionState.waiting)
+        return SpinKitChasingDots(
+          color: colorPrimary,
+          size: 30,
+        );
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: colorPrimary,
+          title: SizedBox(
+            width: 250.0,
+            child: RotateAnimatedTextKit(
+                stopPauseOnTap: true,
+                repeatForever: true,
+                onTap: () {
+                  print("Tap Event");
+                },
+                text: ['Bousta'],
+                textStyle: TextStyle(
+                    fontFamily: fontprimary,
+                    fontSize: 28,
+                    letterSpacing: 2,
+                    color: colorThirdy),
+                textAlign: TextAlign.center),
+          ), //navBarTitleText('Bousta', colorThirdy),
+          centerTitle: true,
+        ),
+        // backgroundColor: colorSecondary,
+        body: Stack(
+          children: [
+            recettesSearch.isEmpty
+                ? pasDeRecetteTrouvee()
+                : ListView.builder(
+                    itemCount: recettesSearch.length,
+                    itemBuilder: (context, index) {
+                      Recette recipe = recettesSearch[index];
+                      double rating;
+                      bool checkFav = getFav(user.favori, recipe.uid);
 
-                          (recipe.rater == 0)
-                              ? rating = 0
-                              : rating = recipe.rate / recipe.rater;
+                      (recipe.rater == 0)
+                          ? rating = 0
+                          : rating = recipe.rate / recipe.rater;
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 2, horizontal: 4),
-                            child: Card(
-                              child: InkWell(
-                                onTap: () {
-                                  Get.toNamed('/recette', arguments: recipe);
-                                },
-                                child: Container(
-                                  height: 120,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                          flex: 2,
-                                          child: Container(
-                                              child: Hero(
-                                            tag: recipe.uid,
-                                            child: Image.network(
-                                              recipe.image,
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (context, child,
-                                                  loadingProgress) {
-                                                if (loadingProgress == null)
-                                                  return child;
-                                                return SpinKitChasingDots(
-                                                  color: colorPrimary,
-                                                  size: 26,
-                                                );
-                                              },
-                                            ),
-                                          ))),
-                                      Expanded(
-                                          flex: 3,
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                padding: EdgeInsets.only(
-                                                    left: 5,
-                                                    bottom: 0,
-                                                    right: 5),
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceAround,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    SelectableText(
-                                                      recipe.titre,
-                                                      style: TextStyle(
-                                                          fontFamily: fontbody,
-                                                          letterSpacing: 2,
-                                                          fontSize: 18,
-                                                          color: colorPrimary
-                                                              .shade900,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                      textAlign: TextAlign.left,
-                                                    ),
-                                                    SizedBox(
-                                                        child: Rate(rating,
-                                                            recipe.rater),
-                                                        height: 20),
-                                                    PersonTimer(recipe: recipe),
-                                                    Text(
-                                                      recipe.categorie,
-                                                      style: TextStyle(
-                                                          fontSize: 17,
-                                                          fontFamily: fontbody,
-                                                          letterSpacing: 2,
-                                                          color:
-                                                              Colors.black87),
-                                                    )
-                                                  ],
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 2, horizontal: 4),
+                        child: Card(
+                          child: InkWell(
+                            onTap: () {
+                              Get.toNamed('/recette',
+                                  arguments: RecetteDetail(user, recipe));
+                            },
+                            child: Container(
+                              height: 120,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      flex: 2,
+                                      child: Container(
+                                          child: Hero(
+                                        tag: recipe.uid,
+                                        child: Image.network(
+                                          recipe.image,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return SpinKitChasingDots(
+                                              color: colorPrimary,
+                                              size: 26,
+                                            );
+                                          },
+                                        ),
+                                      ))),
+                                  Expanded(
+                                      flex: 3,
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, bottom: 0, right: 5),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                SelectableText(
+                                                  recipe.titre,
+                                                  style: TextStyle(
+                                                      fontFamily: fontbody,
+                                                      letterSpacing: 2,
+                                                      fontSize: 18,
+                                                      color:
+                                                          colorPrimary.shade900,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                  textAlign: TextAlign.left,
                                                 ),
-                                              ),
-                                            ],
-                                          )),
-                                    ],
-                                  ),
-                                ),
+                                                SizedBox(
+                                                    child: Rate(
+                                                        rating, recipe.rater),
+                                                    height: 20),
+                                                PersonTimer(recipe: recipe),
+                                                Text(
+                                                  recipe.categorie,
+                                                  style: TextStyle(
+                                                      fontSize: 17,
+                                                      fontFamily: fontbody,
+                                                      letterSpacing: 2,
+                                                      color: Colors.black87),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ],
                               ),
                             ),
-                          );
-                        }),
-                search(),
-              ],
-            ),
-          );
-        });
+                          ),
+                        ),
+                      );
+                    }),
+            search(),
+          ],
+        ),
+      );
+    });
   }
 
   Center pasDeRecetteTrouvee() {
