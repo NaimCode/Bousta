@@ -26,18 +26,18 @@ class _RechercheState extends State<Recherche> {
   List<Recette> recettes = [];
   List<Recette> recettesSearch = [];
   Chef user;
-  getRecette() async {
-    QuerySnapshot qn =
-        await FirebaseFirestore.instance.collection('Recette').get();
-    qn.docs.forEach((element) {
-      recettes.add(Recette.fromDoc(element.data(), element.id));
-    });
-    setState(() {
-      recettesSearch = recettes;
-    });
+  // getRecette() async {
+  //   QuerySnapshot qn =
+  //       await FirebaseFirestore.instance.collection('Recette').get();
+  //   qn.docs.forEach((element) {
+  //     recettes.add(Recette.fromDoc(element.data(), element.id));
+  //   });
+  //   setState(() {
+  //     recettesSearch = recettes;
+  //   });
 
-    return 'Complete';
-  }
+  //   return 'Complete';
+  // }
 
   recherche() {
     List<Recette> filter = [];
@@ -62,6 +62,7 @@ class _RechercheState extends State<Recherche> {
   @override
   void initState() {
     recettes = widget.recettes;
+    //print('${widget.recettes.length}');
     recettesSearch = widget.recettes;
     //future = getRecette();
     searchController.addListener(recherche);
@@ -180,7 +181,7 @@ class _RechercheState extends State<Recherche> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                SelectableText(
+                                                Text(
                                                   recipe.titre,
                                                   style: TextStyle(
                                                       fontFamily: fontbody,

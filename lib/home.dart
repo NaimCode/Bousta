@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:lesrecettesdebousta/pages/discussion.dart';
 import 'package:lesrecettesdebousta/pages/favoris.dart';
 import 'package:lesrecettesdebousta/pages/profil.dart';
 
@@ -23,10 +24,12 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
+var fb = FirebaseFirestore.instance;
+
 class _HomeState extends State<Home> {
-  int currentIndex = 2;
+  int currentIndex = 4;
   var future;
-  //List<Recette> recettes = [];
+  List<Recette> recettes = [];
 
   getBody(int index, List<Recette> v) {
     switch (index) {
@@ -39,8 +42,11 @@ class _HomeState extends State<Home> {
       case 2:
         return Profil(v);
         break;
-      case 3:
+      case 4:
         return Favoris();
+        break;
+      case 3:
+        return Forum();
         break;
       default:
     }
@@ -62,10 +68,22 @@ class _HomeState extends State<Home> {
 
   getRecette() async {
     List<Recette> list = [];
-    QuerySnapshot qn =
-        await FirebaseFirestore.instance.collection('Recette').get();
+    var qn = await fb.collection('Recipe').get();
     qn.docs.forEach((element) {
       list.add(Recette.fromDoc(element.data(), element.id));
+      // var r = Recette(
+      //     titre: element.data()['titre'],
+      //     image: element.data()['image'],
+      //     video: element.data()['video'],
+      //     time: element.data()['time'],
+      //     personne: element.data()['personne'],
+      //     ingredient: element.data()['ingredienta'],
+      //     uid: element.id,
+      //     rate: element.data()['rate'],
+      //     rater: element.data()['rater'],
+      //     description: element.data()['description'],
+      //     categorie: element.data()['categorie']);
+      // list.add(r);
     });
 
     return list;
@@ -76,15 +94,20 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     user = context.watch<Chef>();
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        systemNavigationBarColor: colorPrimary, // navigation bar color
-        statusBarColor: colorPrimary,
-        statusBarBrightness: Brightness.dark // status bar color
+        systemNavigationBarColor: colorSecondary, // navigation bar color
+        statusBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light // status bar color
         ));
     return FutureBuilder(
         future: future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting)
             return Chargement(colorPrimary, colorSecondary);
+          if (snapshot.hasData) {
+            snapshot.data.toString().printInfo();
+          }
           return Scaffold(
             backgroundColor: Colors.white, //colorList[currentIndex],
 
@@ -92,7 +115,7 @@ class _HomeState extends State<Home> {
 
             floatingActionButton: user.admin
                 ? FloatingActionButton(
-                    heroTag: 'addIcon',
+                    heroTag: null,
                     onPressed: () {
                       Get.toNamed('/add');
                     },
@@ -148,6 +171,17 @@ class _HomeState extends State<Home> {
                     icon: Icon(Icons.bookmarks, color: Colors.black),
                     activeIcon: Icon(Icons.bookmarks, color: Colors.indigo),
                     title: Text("Activités")),
+                BubbleBottomBarItem(
+                    backgroundColor: Colors.amber[900],
+                    icon: Icon(
+                      Icons.forum,
+                      color: Colors.black,
+                    ),
+                    activeIcon: Icon(
+                      Icons.forum,
+                      color: Colors.amber[900],
+                    ),
+                    title: Text("Forum")),
                 BubbleBottomBarItem(
                     backgroundColor: Colors.red[900],
                     icon: CircleAvatar(

@@ -32,7 +32,18 @@ class Recette {
   double rate;
   String uid;
   int rater;
-
+  Recette(
+      {this.titre,
+      this.image,
+      this.video,
+      this.ingredient,
+      this.rate,
+      this.rater,
+      this.description,
+      this.time,
+      this.personne,
+      this.categorie,
+      this.uid});
   Recette.fromDoc(var data, String id) {
     titre = data['titre'];
     description = data['description'];

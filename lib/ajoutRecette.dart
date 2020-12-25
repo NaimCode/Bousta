@@ -101,74 +101,74 @@ class _AjoutRecetteState extends State<AjoutRecette> {
         isCharging = true;
       });
       //supp
-      for (var j = 0; j < 10; j++) {
-        if (video != null) {
-          var videoBasename = basename(video.path);
+
+      if (video != null) {
+        var videoBasename = basename(video.path);
+        var ref = FirebaseStorage.instance
+            .ref()
+            .child('Recipe/${titre.text}/$videoBasename');
+
+        var uploadTask = ref.putFile(video);
+        await uploadTask.then((task) async {
+          videoUrl = await task.ref.getDownloadURL();
+        });
+      }
+      var imageBasename = basename(imagePricipal.path);
+      var ref1 = FirebaseStorage.instance
+          .ref()
+          .child('Recette/${titre.text}/$imageBasename');
+      var uploadTask1 = ref1.putFile(imagePricipal);
+      await uploadTask1.then((task) async {
+        imagePricipalUrl = await task.ref.getDownloadURL();
+      });
+
+      for (var i = 0; i < imageEtape.length; i++) {
+        if (imageEtape[i].imageFile != null) {
+          var bse = basename(imageEtape[i].imageFile.path);
           var ref = FirebaseStorage.instance
               .ref()
-              .child('Recette/$j-${titre.text}/$videoBasename');
-
-          var uploadTask = ref.putFile(video);
+              .child('Recipe/${titre.text}/Etape/${i + 1}-$bse');
+          var uploadTask = ref.putFile(imageEtape[i].imageFile);
           await uploadTask.then((task) async {
-            videoUrl = await task.ref.getDownloadURL();
+            imageEtape[i].imageUrl = await task.ref.getDownloadURL();
+            print(imageEtape[i].imageUrl);
           });
         }
-        var imageBasename = basename(imagePricipal.path);
-        var ref1 = FirebaseStorage.instance
-            .ref()
-            .child('Recette/$j-${titre.text}/$imageBasename');
-        var uploadTask1 = ref1.putFile(imagePricipal);
-        await uploadTask1.then((task) async {
-          imagePricipalUrl = await task.ref.getDownloadURL();
-        });
-
-        for (var i = 0; i < imageEtape.length; i++) {
-          if (imageEtape[i].imageFile != null) {
-            var bse = basename(imageEtape[i].imageFile.path);
-            var ref = FirebaseStorage.instance
-                .ref()
-                .child('Recette/$j-${titre.text}/Etape/${i + 1}-$bse');
-            var uploadTask = ref.putFile(imageEtape[i].imageFile);
-            await uploadTask.then((task) async {
-              imageEtape[i].imageUrl = await task.ref.getDownloadURL();
-              print(imageEtape[i].imageUrl);
-            });
-          }
-        }
-        var listIng = [];
-        listIngredientController.forEach((element) {
-          listIng.add(element.text);
-        });
-        var recette = {
-          'rater': 0,
-          'rate': 0.0,
-          'video': videoUrl,
-          'titre': titre.text,
-          'image': imagePricipalUrl,
-          'description': description.text,
-          'personne': personne.text,
-          'time': time.text,
-          'categorie': categorie.text,
-          'ingredienta': listIng,
-        };
-
-        await FirebaseFirestore.instance
-            .collection('Recette')
-            .doc('${j + 1}-${titre.text}')
-            .set(recette);
-        for (var i = 0; i < listEtapeController.length; i++) {
-          var etape = {
-            'description': listEtapeController[i].text,
-            'image': imageEtape[i].imageUrl,
-          };
-          await FirebaseFirestore.instance
-              .collection('Recette')
-              .doc('${j + 1}-${titre.text}')
-              .collection('Etape')
-              .doc('${i + 1}')
-              .set(etape);
-        }
       }
+      var listIng = [];
+      listIngredientController.forEach((element) {
+        listIng.add(element.text);
+      });
+      var recette = {
+        'rater': 0,
+        'rate': 0.0,
+        'video': videoUrl,
+        'titre': titre.text,
+        'image': imagePricipalUrl,
+        'description': description.text,
+        'personne': personne.text,
+        'time': time.text,
+        'categorie': categorie.text,
+        'ingredienta': listIng,
+      };
+
+      await FirebaseFirestore.instance
+          .collection('Recipe')
+          .doc('${titre.text}')
+          .set(recette);
+      for (var i = 0; i < listEtapeController.length; i++) {
+        var etape = {
+          'description': listEtapeController[i].text,
+          'image': imageEtape[i].imageUrl,
+        };
+        await FirebaseFirestore.instance
+            .collection('Recipe')
+            .doc('${titre.text}')
+            .collection('Etape')
+            .doc('${i + 1}')
+            .set(etape);
+      }
+
       setState(() {
         listIngredientController.forEach((element) {
           element.clear();

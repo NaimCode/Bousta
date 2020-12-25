@@ -17,9 +17,14 @@ class RecettePage extends StatefulWidget {
   _RecettePageState createState() => _RecettePageState();
 }
 
+var canCom = false.obs;
+var userRating = 0.0.obs;
+
 class _RecettePageState extends State<RecettePage> {
   var recette;
+  var userChef;
   var future;
+  var recetteDetail;
   List etapeT = [];
   List etapeI = [];
   ScrollController _scrollController = ScrollController();
@@ -38,17 +43,19 @@ class _RecettePageState extends State<RecettePage> {
   }
 
   TextEditingController messageText = TextEditingController();
-  sendMessage(String utilisateurID) async {
-    if (messageText.text.isNotEmpty) {
+  sendMessage() async {
+    if (!canCom.value) {
+      Get.snackbar('Erreur', 'Veuillez noter avant de commenter');
+    } else if (messageText.text.isNotEmpty) {
       var message = {
-        'userID': utilisateurID,
+        'userID': userChef,
         'message': messageText.text,
         'date': Timestamp.now(),
       };
-
+      print('middle');
       await FirebaseFirestore.instance
-          .collection('Recette')
-          .doc(Get.arguments.recette.uid)
+          .collection('Recipe')
+          .doc(recette.uid)
           .collection('Discussion')
           .add(message);
       setState(() {
@@ -62,7 +69,7 @@ class _RecettePageState extends State<RecettePage> {
     var listinit = [];
     var listinitT = [];
     var qn = await FirebaseFirestore.instance
-        .collection('Recette')
+        .collection('Recipe')
         .doc(Get.arguments.recette.uid)
         .collection('Etape')
         .get();
@@ -96,6 +103,8 @@ class _RecettePageState extends State<RecettePage> {
     setHistorique();
     _scrollController.addListener(_scrollListener);
     recette = Get.arguments.recette;
+    recetteDetail = Get.arguments;
+    userChef = Get.arguments.user.uid;
     future = getEtape();
     // TODO: implement initState
     super.initState();
@@ -167,15 +176,12 @@ class _RecettePageState extends State<RecettePage> {
                           ),
                         ),
                         IconButton(
-                            icon: Icon(
-                              Icons.send,
-                              color: colorPrimary,
-                            ),
-                            onPressed: () {
-                              print('test1');
-                              sendMessage(Get.arguments.user.uid);
-                              print('test2');
-                            }),
+                          icon: Icon(
+                            Icons.send,
+                            color: colorPrimary,
+                          ),
+                          onPressed: sendMessage,
+                        )
                       ],
                     ),
                   ),
@@ -184,7 +190,7 @@ class _RecettePageState extends State<RecettePage> {
                   height: 470,
                   child: StreamBuilder(
                       stream: FirebaseFirestore.instance
-                          .collection('Recette')
+                          .collection('Recipe')
                           .doc(recette.uid)
                           .collection('Discussion')
                           .orderBy('date', descending: true)
@@ -216,25 +222,132 @@ class _RecettePageState extends State<RecettePage> {
                                       style: TextStyle(color: Colors.black38))
                                 ],
                               ))
-                            : ListView.builder(
-                                //reverse: true,
-                                shrinkWrap: true,
-                                itemCount: discu.length,
-                                itemBuilder: (context, index) {
-                                  bool isUser = (discu[index].userID ==
-                                      Get.arguments.user.uid);
-                                  return ListTile(
-                                    subtitle: MessageSection(
-                                      isUser: isUser,
-                                      listMessage: discu,
-                                      index: index,
-                                    ),
-                                    title: UserSection(
-                                        listMessage: discu,
-                                        isUser: isUser,
-                                        index: index),
-                                  );
-                                });
+                            : Scrollbar(
+                                child: ListView.builder(
+                                    //reverse: true,
+                                    shrinkWrap: true,
+                                    itemCount: discu.length,
+                                    itemBuilder: (context, index) {
+                                      return FutureBuilder(
+                                          future: FirebaseFirestore.instance
+                                              .collection('Chef')
+                                              .doc(discu[index].userID)
+                                              .get(),
+                                          builder: (context, snapUser) {
+                                            var user;
+                                            if (snapUser.connectionState ==
+                                                ConnectionState.waiting)
+                                              return Container();
+                                            if (snapUser.hasData) {
+                                              user = snapUser.data;
+                                            }
+                                            return ListTile(
+                                              leading: CircleAvatar(
+                                                backgroundColor: colorSecondary,
+                                                backgroundImage:
+                                                    user['image'] == null
+                                                        ? AssetImage(profile)
+                                                        : NetworkImage(
+                                                            user['image']),
+                                              ),
+                                              title: user['admin']
+                                                  ? Row(
+                                                      children: [
+                                                        Text(user['nom']),
+                                                        SizedBox(
+                                                          width: 10,
+                                                        ),
+                                                        Text('Admin',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .black38,
+                                                                fontSize: 11))
+                                                      ],
+                                                    )
+                                                  : Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(user['nom']),
+                                                        StreamBuilder(
+                                                            stream:
+                                                                FirebaseFirestore
+                                                                    .instance
+                                                                    .collection(
+                                                                        'Chef')
+                                                                    .doc(user[
+                                                                        'uid'])
+                                                                    .collection(
+                                                                        'Rating')
+                                                                    .doc(recette
+                                                                        .uid)
+                                                                    .snapshots(),
+                                                            builder: (context,
+                                                                snapRating) {
+                                                              double rating = 0;
+                                                              if (snapRating
+                                                                      .connectionState ==
+                                                                  ConnectionState
+                                                                      .waiting)
+                                                                return Container();
+
+                                                              if (snapRating
+                                                                  .hasData) {
+                                                                var doci =
+                                                                    snapRating
+                                                                        .data;
+
+                                                                rating = doci[
+                                                                    'rate'];
+                                                              }
+                                                              return SizedBox(
+                                                                  child: Rate(
+                                                                      rating,
+                                                                      0),
+                                                                  height: 20);
+                                                            }),
+                                                      ],
+                                                    ),
+                                              subtitle: Container(
+                                                  decoration: BoxDecoration(
+                                                      color: user['admin']
+                                                          ? primary
+                                                              .withOpacity(0.7)
+                                                          : Colors
+                                                              .grey.shade200,
+                                                      shape: BoxShape.rectangle,
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                        bottomLeft:
+                                                            Radius.circular(
+                                                                15.0),
+                                                        bottomRight:
+                                                            Radius.circular(
+                                                                15.0),
+                                                        topLeft:
+                                                            Radius.circular(
+                                                                0.0),
+                                                        topRight:
+                                                            Radius.circular(
+                                                                15.0),
+                                                      )),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Text(
+                                                      discu[index].message,
+                                                      style: TextStyle(
+                                                          color: user['admin']
+                                                              ? Colors.white
+                                                              : null),
+                                                    ),
+                                                  )),
+                                            );
+                                          });
+                                    }),
+                              );
                       }),
                 ),
               ],
@@ -278,110 +391,109 @@ class _RecettePageState extends State<RecettePage> {
           ),
         ),
         SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-          return index == 0
-              ? Padding(
-                  padding: const EdgeInsets.only(
-                    left: 8.0,
-                    right: 8.0,
+            delegate: SliverChildListDelegate([
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 8.0,
+              right: 8.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RateFavorite(recetteDetail),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        InfoSection(recette: recette),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RateFavorite(Get.arguments),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              InfoSection(recette: recette),
-                            ],
-                          ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                IngreSection(recette: recette),
+                SizedBox(
+                  height: 20,
+                ),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Étapes',
+                          style: TextStyle(
+                              color: colorPrimary,
+                              fontFamily: fontprimary,
+                              fontSize: 24),
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      IngreSection(recette: recette),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Text(
-                                'Étapes',
-                                style: TextStyle(
-                                    color: colorPrimary,
-                                    fontFamily: fontprimary,
-                                    fontSize: 24),
-                              ),
-                              Divider(color: colorPrimary, thickness: 1.0),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                        Divider(color: colorPrimary, thickness: 1.0),
+                      ],
+                    ),
                   ),
-                )
-              : FutureBuilder(
-                  future: future,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      return SpinKitChasingDots(
-                        color: colorPrimary,
-                        size: 30,
-                      );
-                    return ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: etape,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                              padding: EdgeInsets.only(bottom: 10),
-                              child: Card(
-                                child: Column(
-                                  children: [
-                                    (etapeI[index] == null)
-                                        ? Container()
-                                        : Container(
-                                            height: 200,
-                                            width: double.infinity,
-                                            child: Image.network(
-                                              etapeI[index],
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (context, child,
-                                                  loadingProgress) {
-                                                if (loadingProgress == null)
-                                                  return child;
-                                                return SpinKitChasingDots(
-                                                  color: colorPrimary,
-                                                  size: 26,
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                    ListTile(
-                                      leading: CircleAvatar(
-                                        backgroundColor: colorPrimary,
-                                        child: Text(
-                                          '${index + 1}',
-                                          style: TextStyle(color: colorThirdy),
+                ),
+              ],
+            ),
+          ),
+          FutureBuilder(
+              future: future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  return SpinKitChasingDots(
+                    color: colorPrimary,
+                    size: 30,
+                  );
+                return ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: etape,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: Card(
+                            child: Column(
+                              children: [
+                                (etapeI[index] == null)
+                                    ? Container()
+                                    : Container(
+                                        height: 200,
+                                        width: double.infinity,
+                                        child: Image.network(
+                                          etapeI[index],
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return SpinKitChasingDots(
+                                              color: colorPrimary,
+                                              size: 26,
+                                            );
+                                          },
                                         ),
                                       ),
-                                      title: Text(
-                                        etapeT[index],
-                                        style: TextStyle(fontFamily: fontbody),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ));
-                        });
-                  });
-        }, childCount: 3))
+                                ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: colorPrimary,
+                                    child: Text(
+                                      '${index + 1}',
+                                      style: TextStyle(color: colorThirdy),
+                                    ),
+                                  ),
+                                  title: SelectableText(
+                                    etapeT[index],
+                                    style: TextStyle(fontFamily: fontbody),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ));
+                    });
+              })
+        ]))
       ]),
     );
   }
@@ -399,12 +511,14 @@ class _RateFavoriteState extends State<RateFavorite> {
   @override
   void initState() {
     listFav = widget.rd.user.favori;
+    recette = widget.rd.recette;
     check = widget.rd.user.favori.contains(widget.rd.recette.uid);
-    print('$check');
+
     // TODO: implement initState
     super.initState();
   }
 
+  var recette;
   var rating = 4.0;
   var check;
   List listFav;
@@ -435,6 +549,7 @@ class _RateFavoriteState extends State<RateFavorite> {
           if (sr.hasError) rating = 0.0;
           if (sr.hasData) {
             rating = sr.data;
+            canCom.value = true;
           }
           var data;
           return SizedBox(
@@ -452,6 +567,8 @@ class _RateFavoriteState extends State<RateFavorite> {
                       SmoothStarRating(
                           allowHalfRating: false,
                           onRated: (v) async {
+                            canCom.value = true;
+                            userRating.value = v;
                             data = {
                               'rate': v,
                             };
@@ -459,14 +576,14 @@ class _RateFavoriteState extends State<RateFavorite> {
                                 .collection('Chef')
                                 .doc(widget.rd.user.uid)
                                 .collection('Rating')
-                                .doc(widget.rd.recette.uid)
+                                .doc(recette.uid)
                                 .set(data);
                             await FirebaseFirestore.instance
-                                .collection('Recette')
-                                .doc(widget.rd.recette.uid)
+                                .collection('Recipe')
+                                .doc(recette.uid)
                                 .update({
-                              'rate': widget.rd.recette.rate + v,
-                              'rater': widget.rd.recette.rater + 1
+                              'rate': recette.rate + v / recette.rater + 1,
+                              'rater': recette.rater + 1
                             });
                             Get.snackbar('Information',
                                 'Vous avez noté $v cette recette');
@@ -494,9 +611,9 @@ class _RateFavoriteState extends State<RateFavorite> {
                     onPressed: () async {
                       var l = listFav;
                       if (check) {
-                        l.remove(widget.rd.recette.uid);
+                        l.remove(recette.uid);
                       } else {
-                        l.add(widget.rd.recette.uid);
+                        l.add(recette.uid);
                       }
                       await FirebaseFirestore.instance
                           .collection('Chef')

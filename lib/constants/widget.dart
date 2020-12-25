@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:lesrecettesdebousta/constants/model.dart';
+import 'package:lesrecettesdebousta/pages/recette.dart';
 import 'package:lesrecettesdebousta/constants/staticVariables.dart';
 import 'package:lottie/lottie.dart';
 
+import 'package:timeago/timeago.dart' as timeago;
 import 'color.dart';
 
 //dialo with return
@@ -198,34 +200,38 @@ class BigTitle extends StatelessWidget {
 
 //rating
 class Rate extends StatelessWidget {
-  double rating;
-  var rater;
+  final double rating;
+  final rater;
   Rate(this.rating, this.rater);
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
         scrollDirection: Axis.horizontal,
         itemCount: 6,
         itemBuilder: (context, index) {
           bool check = (rating >= index + 1);
           return index == 5
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '(${rating.toPrecision(1)})',
-                      style: TextStyle(
-                        color: Colors.black26,
-                        fontSize: 14,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      '$rater',
-                      style: TextStyle(color: Colors.black26, fontSize: 12),
+              ? rater == 0
+                  ? Container()
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '(${(rating / rater).toPrecision(1)})',
+                          style: TextStyle(
+                            color: Colors.black26,
+                            fontSize: 14,
+                            letterSpacing: 3,
+                          ),
+                        ),
+                        Text(
+                          '$rater',
+                          style: TextStyle(color: Colors.black26, fontSize: 12),
+                        )
+                      ],
                     )
-                  ],
-                )
               : Icon(
                   Icons.star_rate,
                   color: Colors.yellow.withOpacity(check ? 1 : 0.3),
@@ -347,7 +353,10 @@ class InfoSection extends StatelessWidget {
         ),
         ListTile(
           leading: Icon(Icons.rate_review),
-          title: SizedBox(child: Rate(recette.rate, recette.rater), height: 20),
+          title: SizedBox(
+              child: Obx(
+                  () => Rate(recette.rate + userRating.value, (recette.rater))),
+              height: 20),
         ),
       ],
     );
@@ -370,7 +379,7 @@ class UserSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 20),
+      // margin: EdgeInsets.only(top: 4),
       child: FutureBuilder(
         future: FirebaseFirestore.instance
             .collection('Chef')
@@ -395,16 +404,16 @@ class UserSection extends StatelessWidget {
                               child: Icon(
                                 Icons.star_purple500_outlined,
                                 color: Colors.amber,
-                                size: 15,
+                                size: 20,
                               ),
                             ),
                           Text(
                             user['nom'],
                             style: TextStyle(
-                                fontFamily: 'Poppins',
+                                fontFamily: fontbody,
                                 color: Colors.purple,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14),
+                                fontSize: 16),
                           ),
                           SizedBox(
                             width: 12.0,
@@ -412,6 +421,7 @@ class UserSection extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4.0),
                             child: CircleAvatar(
+                              backgroundColor: colorSecondary,
                               backgroundImage: user['image'] == null
                                   ? AssetImage(profile)
                                   : NetworkImage(user['image']),
@@ -426,8 +436,10 @@ class UserSection extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4.0),
                           child: CircleAvatar(
-                            backgroundImage:
-                                NetworkImage(user['image'] ?? profile),
+                            backgroundColor: colorSecondary,
+                            backgroundImage: user['image'] == null
+                                ? AssetImage(profile)
+                                : NetworkImage(user['image']),
                           ),
                         ),
                         SizedBox(
@@ -436,10 +448,10 @@ class UserSection extends StatelessWidget {
                         Text(
                           user['nom'],
                           style: TextStyle(
-                              fontFamily: 'Poppins',
+                              fontFamily: fontbody,
                               color: Colors.purple,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14),
+                              fontSize: 16),
                         ),
                         if (user['admin'] == true)
                           Tooltip(
@@ -484,7 +496,7 @@ class MessageSection extends StatelessWidget {
         children: [
           Container(
               decoration: BoxDecoration(
-                  color: !isUser ? backColor : primary,
+                  color: !isUser ? Colors.grey.shade200 : colorPrimary.shade200,
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(25.0),
@@ -495,10 +507,87 @@ class MessageSection extends StatelessWidget {
                         !isUser ? Radius.circular(25.0) : Radius.circular(0.0),
                   )),
               padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 13),
-              child: Text(
-                listMessage[index].message,
-                style: TextStyle(color: isUser ? Colors.white : primary),
+              child: InkWell(
+                onLongPress: () {
+                  Get.defaultDialog(
+                      title: 'Suppression',
+                      middleText: 'Voulez-vous supprimer ce message?',
+                      actions: [
+                        FlatButton(
+                          onPressed: () async {
+                            Get.back();
+                          },
+                          child: Text(
+                            'Annuler',
+                            style:
+                                TextStyle(color: primary, fontFamily: fontbody),
+                          ),
+                          color: Colors.white,
+                        ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        FlatButton(
+                          onPressed: () async {
+                            var delete = FirebaseFirestore.instance
+                                .collection('Forum')
+                                .where('date',
+                                    isEqualTo: listMessage[index].date);
+                            delete.get().then((value) {
+                              value.docs.forEach((element) {
+                                element.reference.delete();
+                              });
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Supprimer',
+                            style: TextStyle(
+                                color: Colors.white, fontFamily: fontbody),
+                          ),
+                          color: Colors.red,
+                        )
+                      ]);
+                },
+                child: Text(
+                  listMessage[index].message,
+                  style: TextStyle(color: Colors.black, fontSize: 16),
+                ),
               )),
+          (index == 0)
+              ? Container(
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    child: Text(
+                      timeago.format(listMessage[index].date.toDate(),
+                          locale: 'fr'),
+                      style: TextStyle(
+                          fontFamily: 'Ubuntu',
+                          color: Colors.black45,
+                          fontSize: 10),
+                    ),
+                  ))
+              : (listMessage[index].userID == listMessage[index - 1].userID)
+                  ? Container()
+                  : Container(
+                      alignment:
+                          isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        child: Text(
+                          timeago.format(listMessage[index].date.toDate(),
+                              locale: 'fr'),
+                          style: TextStyle(
+                            fontFamily: 'Ubuntu',
+                            color: Colors.black45,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ))
         ],
       ),
     );

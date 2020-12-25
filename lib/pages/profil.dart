@@ -151,206 +151,106 @@ class _ProfilState extends State<Profil> with TickerProviderStateMixin {
       ),
     );
   }
-  //   return Scaffold(
-  //     body: CustomScrollView(controller: _scrollController, slivers: [
-  //       SliverAppBar(
-  //         floating: true,
-  //         // title: Text(
-  //         //   user.nom, //recette.titre,
-  //         //   style: TextStyle(
-  //         //       color: Colors.black, //isShrink ? Colors.black : Colors.white,
-  //         //       fontFamily: fontbody,
-  //         //       letterSpacing: 2,
-  //         //       fontWeight: FontWeight.bold),
-  //         // ),
-  //         flexibleSpace: FlexibleSpaceBar(
-  //           title: Padding(
-  //               padding: const EdgeInsets.only(bottom: 23),
-  //               child: Row(
-  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                 children: [
-  //                   Expanded(
-  //                     child: ListTile(
-  //                       leading: CircleAvatar(
-  //                         child: user.image == null
-  //                             ? Image.asset(
-  //                                 profile,
-  //                                 fit: BoxFit.cover,
-  //                                 //height: 100,
-  //                               )
-  //                             : Image.network(
-  //                                 user.image,
-  //                                 fit: BoxFit.cover,
-  //                               ),
-  //                       ),
-  //                       title: Text(
-  //                         user.nom, //recette.titre,
-  //                         style: TextStyle(
-  //                             color: Colors
-  //                                 .black, //isShrink ? Colors.black : Colors.white,
-  //                             fontFamily: fontbody,
-  //                             letterSpacing: 2,
-  //                             fontWeight: FontWeight.bold),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   IconButton(
-  //                       icon: Icon(
-  //                         Icons.logout,
-  //                         color: Colors.black,
-  //                       ),
-  //                       onPressed: () async {
-  //                         await Authentification(FirebaseAuth.instance)
-  //                             .deconnection();
-  //                       }),
-  //                 ],
-  //               )
-  //               // Container(
-  //               //   color: colorSecondary,
-  //               //   //centerTitle: true,
-  //               //   child:
-  //               // user.image == null
-  //               //       ? Image.asset(
-  //               //           profile,
-  //               //           fit: BoxFit.cover,
-  //               //         )
-  //               //       : Image.network(
-  //               //           user.image,
-  //               //           fit: BoxFit.cover,
-  //               //         ),
-  //               // ),
-  //               ),
-  //           collapseMode: CollapseMode.pin,
-  //         ),
-  //         snap: true,
-  //         backgroundColor: colorPrimary,
-  //         pinned: true,
-  //         bottom: TabBar(
-  //             indicatorColor: Colors.black,
-  //             controller: tab,
-  //             indicatorWeight: 2,
-  //             tabs: [
-  //               Tab(
-  //                 icon: Icon(
-  //                   Icons.favorite,
-  //                   color: Colors.red,
-  //                 ),
-  //               ),
-  //               Tab(
-  //                 icon: Icon(
-  //                   Icons.history,
-  //                   color: Colors.blue,
-  //                 ),
-  //               )
-  //             ]),
-  //         elevation: 8,
-  //         expandedHeight: 120,
-  //       ),
-  //       SliverList(
-  //           delegate: SliverChildListDelegate([
-  //         AnimatedSwitcher(
-  //             child: favor ? fav(getFav(user)) : fav(getHis(user)),
-  //             duration: Duration(seconds: 1))
-  //       ]))
-  //     ]),
-  //   );
-  // }
 
   fav(List recettesSearch) {
-    return ListView.builder(
-        shrinkWrap: true,
-        // physics: NeverScrollableScrollPhysics(),
-        itemCount: recettesSearch.length,
-        itemBuilder: (context, index) {
-          Recette recipe = recettesSearch[index];
-          double rating;
-          //bool checkFav = getFav(user.favori, recipe.uid);
+    return Scrollbar(
+      child: ListView.builder(
+          shrinkWrap: true,
+          // physics: NeverScrollableScrollPhysics(),
+          itemCount: recettesSearch.length,
+          itemBuilder: (context, index) {
+            Recette recipe = recettesSearch[index];
+            double rating;
+            //bool checkFav = getFav(user.favori, recipe.uid);
 
-          (recipe.rater == 0)
-              ? rating = 0
-              : rating = recipe.rate / recipe.rater;
+            (recipe.rater == 0)
+                ? rating = 0
+                : rating = recipe.rate / recipe.rater;
 
-          return recettesSearch.isEmpty
-              ? Center(
-                  child: Text('Aucune recette favorite'),
-                )
-              : Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                  child: Card(
-                    child: InkWell(
-                      onTap: () {
-                        Get.toNamed('/recette',
-                            arguments: RecetteDetail(user, recipe));
-                      },
-                      child: Container(
-                        height: 120,
-                        child: Row(
-                          children: [
-                            Expanded(
-                                flex: 2,
-                                child: Container(
-                                    child: Hero(
-                                  tag: recipe.uid,
-                                  child: Image.network(
-                                    recipe.image,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return SpinKitChasingDots(
-                                        color: colorPrimary,
-                                        size: 26,
-                                      );
-                                    },
-                                  ),
-                                ))),
-                            Expanded(
-                                flex: 3,
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.only(
-                                          left: 5, bottom: 0, right: 5),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          SelectableText(
-                                            recipe.titre,
-                                            style: TextStyle(
-                                                fontFamily: fontbody,
-                                                letterSpacing: 2,
-                                                fontSize: 18,
-                                                color: colorPrimary.shade900,
-                                                fontWeight: FontWeight.bold),
-                                            textAlign: TextAlign.left,
-                                          ),
-                                          SizedBox(
-                                              child: Rate(rating, recipe.rater),
-                                              height: 20),
-                                          PersonTimer(recipe: recipe),
-                                          Text(
-                                            recipe.categorie,
-                                            style: TextStyle(
-                                                fontSize: 17,
-                                                fontFamily: fontbody,
-                                                letterSpacing: 2,
-                                                color: Colors.black87),
-                                          )
-                                        ],
-                                      ),
+            return recettesSearch.isEmpty
+                ? Center(
+                    child: Text('Aucune recette favorite'),
+                  )
+                : Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                    child: Card(
+                      child: InkWell(
+                        onTap: () {
+                          Get.toNamed('/recette',
+                              arguments: RecetteDetail(user, recipe));
+                        },
+                        child: Container(
+                          height: 120,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                      child: Hero(
+                                    tag: recipe.uid,
+                                    child: Image.network(
+                                      recipe.image,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return SpinKitChasingDots(
+                                          color: colorPrimary,
+                                          size: 26,
+                                        );
+                                      },
                                     ),
-                                  ],
-                                )),
-                          ],
+                                  ))),
+                              Expanded(
+                                  flex: 3,
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.only(
+                                            left: 5, bottom: 0, right: 5),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            SelectableText(
+                                              recipe.titre,
+                                              style: TextStyle(
+                                                  fontFamily: fontbody,
+                                                  letterSpacing: 2,
+                                                  fontSize: 18,
+                                                  color: colorPrimary.shade900,
+                                                  fontWeight: FontWeight.bold),
+                                              textAlign: TextAlign.left,
+                                            ),
+                                            SizedBox(
+                                                child:
+                                                    Rate(rating, recipe.rater),
+                                                height: 20),
+                                            PersonTimer(recipe: recipe),
+                                            Text(
+                                              recipe.categorie,
+                                              style: TextStyle(
+                                                  fontSize: 17,
+                                                  fontFamily: fontbody,
+                                                  letterSpacing: 2,
+                                                  color: Colors.black87),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-        });
+                  );
+          }),
+    );
   }
 }
