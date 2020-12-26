@@ -92,32 +92,7 @@ class _ProfilState extends State<Profil> with TickerProviderStateMixin {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: SizedBox(
-            width: 250.0,
-            child: RotateAnimatedTextKit(
-                stopPauseOnTap: true,
-                repeatForever: true,
-                onTap: () {
-                  print("Tap Event");
-                },
-                text: ['Bousta'],
-                textStyle: TextStyle(
-                  fontFamily: fontprimary,
-                  fontSize: 30,
-                  letterSpacing: 4,
-                  color: colorThirdy,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 6.0,
-                      color: Colors.grey.shade700,
-                      //offset: Offset(0.0, 0.0),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center),
-          ), //navBarTitleText('Bousta', colorThirdy),
-          centerTitle: true,
-
+          toolbarHeight: 75,
           bottom: TabBar(
               indicatorColor: Colors.black,
               controller: tab,

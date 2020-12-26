@@ -207,31 +207,31 @@ class Rate extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        // physics: NeverScrollableScrollPhysics(),
         scrollDirection: Axis.horizontal,
         itemCount: 6,
         itemBuilder: (context, index) {
-          bool check = (rating >= index + 1);
+          bool check = (rating / rater >= index + 1);
           return index == 5
-              ? rater == 0
-                  ? Container()
-                  : Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '(${(rating / rater).toPrecision(1)})',
-                          style: TextStyle(
-                            color: Colors.black26,
-                            fontSize: 14,
-                            letterSpacing: 3,
-                          ),
-                        ),
-                        Text(
-                          '$rater',
-                          style: TextStyle(color: Colors.black26, fontSize: 12),
-                        )
-                      ],
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      rater == 0
+                          ? '(0.0)'
+                          : '(${(rating / rater).toPrecision(1)})',
+                      style: TextStyle(
+                        color: Colors.black26,
+                        fontSize: 14,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      '$rater',
+                      style: TextStyle(color: Colors.black26, fontSize: 12),
                     )
+                  ],
+                )
               : Icon(
                   Icons.star_rate,
                   color: Colors.yellow.withOpacity(check ? 1 : 0.3),
@@ -251,15 +251,18 @@ rate(bool check) {
 }
 
 class IngreSection extends StatelessWidget {
-  const IngreSection({
+  IngreSection({
     Key key,
     @required this.recette,
   }) : super(key: key);
 
   final recette;
-
+  var recet = [];
   @override
   Widget build(BuildContext context) {
+    recette.ingredient.forEach((element) {
+      if (element.isNotEmpty) recet.add(element);
+    });
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -274,7 +277,7 @@ class IngreSection extends StatelessWidget {
             ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: recette.ingredient.length,
+                itemCount: recet.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     leading: CircleAvatar(
@@ -285,7 +288,7 @@ class IngreSection extends StatelessWidget {
                       ),
                     ),
                     title: Text(
-                      recette.ingredient[index],
+                      recet[index],
                       style: TextStyle(fontFamily: fontbody),
                     ),
                   );
@@ -315,13 +318,6 @@ class InfoSection extends StatelessWidget {
               color: colorPrimary, fontFamily: fontprimary, fontSize: 24),
         ),
         Divider(color: colorPrimary, thickness: 1.0),
-        ListTile(
-          leading: Icon(Icons.description),
-          title: Text(
-            recette.description,
-            style: TextStyle(fontFamily: fontbody),
-          ),
-        ),
         ListTile(
           leading: Icon(Icons.fastfood),
           title: Text(
@@ -354,9 +350,16 @@ class InfoSection extends StatelessWidget {
         ListTile(
           leading: Icon(Icons.rate_review),
           title: SizedBox(
-              child: Obx(
-                  () => Rate(recette.rate + userRating.value, (recette.rater))),
+              child: Obx(() =>
+                  Rate(recette.rate + userRating.value, recetteRater.value)),
               height: 20),
+        ),
+        ListTile(
+          leading: Icon(Icons.description),
+          title: Text(
+            recette.description,
+            style: TextStyle(fontFamily: fontbody),
+          ),
         ),
       ],
     );

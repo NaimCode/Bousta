@@ -27,14 +27,14 @@ class Home extends StatefulWidget {
 var fb = FirebaseFirestore.instance;
 
 class _HomeState extends State<Home> {
-  int currentIndex = 4;
+  int currentIndex = 0;
   var future;
   List<Recette> recettes = [];
 
   getBody(int index, List<Recette> v) {
     switch (index) {
       case 0:
-        return Accueil();
+        return Accueil(v);
         break;
       case 1:
         return Recherche(v);
@@ -42,9 +42,7 @@ class _HomeState extends State<Home> {
       case 2:
         return Profil(v);
         break;
-      case 4:
-        return Favoris();
-        break;
+
       case 3:
         return Forum();
         break;
@@ -68,22 +66,9 @@ class _HomeState extends State<Home> {
 
   getRecette() async {
     List<Recette> list = [];
-    var qn = await fb.collection('Recipe').get();
+    var qn = await fb.collection('Recette').get();
     qn.docs.forEach((element) {
       list.add(Recette.fromDoc(element.data(), element.id));
-      // var r = Recette(
-      //     titre: element.data()['titre'],
-      //     image: element.data()['image'],
-      //     video: element.data()['video'],
-      //     time: element.data()['time'],
-      //     personne: element.data()['personne'],
-      //     ingredient: element.data()['ingredienta'],
-      //     uid: element.id,
-      //     rate: element.data()['rate'],
-      //     rater: element.data()['rater'],
-      //     description: element.data()['description'],
-      //     categorie: element.data()['categorie']);
-      // list.add(r);
     });
 
     return list;
@@ -109,10 +94,39 @@ class _HomeState extends State<Home> {
             snapshot.data.toString().printInfo();
           }
           return Scaffold(
+            appBar: AppBar(
+              title: SizedBox(
+                width: 250.0,
+                child: RotateAnimatedTextKit(
+                    stopPauseOnTap: true,
+                    repeatForever: true,
+                    onTap: () {
+                      print("Tap Event");
+                    },
+                    text: ['Bousta'],
+                    textStyle: TextStyle(
+                      fontFamily: fontprimary,
+                      fontSize: 30,
+                      letterSpacing: 4,
+                      color: colorThirdy,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 6.0,
+                          color: Colors.grey.shade700,
+                          //offset: Offset(0.0, 0.0),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center),
+              ), //navBarTitleText('Bousta', colorThirdy),
+              centerTitle: true,
+            ),
             backgroundColor: Colors.white, //colorList[currentIndex],
 
             body: getBody(currentIndex, snapshot.data),
-
+            drawer: Drawer(
+              child: Favoris(),
+            ),
             floatingActionButton: user.admin
                 ? FloatingActionButton(
                     heroTag: null,
@@ -182,24 +196,6 @@ class _HomeState extends State<Home> {
                       color: Colors.amber[900],
                     ),
                     title: Text("Forum")),
-                BubbleBottomBarItem(
-                    backgroundColor: Colors.red[900],
-                    icon: CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: user.image == null
-                          ? AssetImage(profile)
-                          : NetworkImage(user.image),
-                    ),
-                    activeIcon: CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: user.image == null
-                          ? AssetImage(profile)
-                          : NetworkImage(user.image),
-                    ),
-                    title: Text(
-                      user.nom,
-                      overflow: TextOverflow.ellipsis,
-                    )),
               ],
             ),
           );

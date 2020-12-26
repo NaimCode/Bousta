@@ -28,6 +28,7 @@ dependencies:
   cupertino_icons: ^1.0.0
   file: ^5.2.1
   #file_picker: ^2.1.4
+  flutter_swiper: ^1.1.6
   firebase_auth: ^0.18.4+1
   firebase_core: ^0.5.3
   firebase_storage: ^5.2.0
@@ -36,6 +37,8 @@ dependencies:
   get: ^3.23.1
   video_compress: ^2.1.0
   #image_picker: ^0.6.7+17
+  getwidget: ^1.2.4
+  fancy_drawer: ^1.0.0
   timeago: ^2.0.29
   slimy_card: ^1.0.4
   flutter_login: ^1.0.14

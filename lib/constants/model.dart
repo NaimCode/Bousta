@@ -32,6 +32,7 @@ class Recette {
   double rate;
   String uid;
   int rater;
+  bool recetteDuJour;
   Recette(
       {this.titre,
       this.image,
@@ -54,9 +55,16 @@ class Recette {
     rater = data['rater'];
     image = data['image'];
     uid = id;
+    recetteDuJour = data['recette du jour'];
     categorie = data['categorie'];
     video = data['video'] ?? null;
   }
+}
+
+class Categorie {
+  String nom;
+  String image;
+  Categorie(this.nom, this.image);
 }
 
 class Chef {

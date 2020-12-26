@@ -106,7 +106,7 @@ class _AjoutRecetteState extends State<AjoutRecette> {
         var videoBasename = basename(video.path);
         var ref = FirebaseStorage.instance
             .ref()
-            .child('Recipe/${titre.text}/$videoBasename');
+            .child('Recette/${titre.text}/$videoBasename');
 
         var uploadTask = ref.putFile(video);
         await uploadTask.then((task) async {
@@ -127,7 +127,7 @@ class _AjoutRecetteState extends State<AjoutRecette> {
           var bse = basename(imageEtape[i].imageFile.path);
           var ref = FirebaseStorage.instance
               .ref()
-              .child('Recipe/${titre.text}/Etape/${i + 1}-$bse');
+              .child('Recette/${titre.text}/Etape/${i + 1}-$bse');
           var uploadTask = ref.putFile(imageEtape[i].imageFile);
           await uploadTask.then((task) async {
             imageEtape[i].imageUrl = await task.ref.getDownloadURL();
@@ -148,12 +148,14 @@ class _AjoutRecetteState extends State<AjoutRecette> {
         'description': description.text,
         'personne': personne.text,
         'time': time.text,
+        'recette du jour': false,
         'categorie': categorie.text,
         'ingredienta': listIng,
+        'date': Timestamp.now(),
       };
 
       await FirebaseFirestore.instance
-          .collection('Recipe')
+          .collection('Recette')
           .doc('${titre.text}')
           .set(recette);
       for (var i = 0; i < listEtapeController.length; i++) {
@@ -162,7 +164,7 @@ class _AjoutRecetteState extends State<AjoutRecette> {
           'image': imageEtape[i].imageUrl,
         };
         await FirebaseFirestore.instance
-            .collection('Recipe')
+            .collection('Recette')
             .doc('${titre.text}')
             .collection('Etape')
             .doc('${i + 1}')

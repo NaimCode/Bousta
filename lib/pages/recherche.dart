@@ -100,27 +100,6 @@ class _RechercheState extends State<Recherche> {
           size: 30,
         );
       return Scaffold(
-        appBar: AppBar(
-          backgroundColor: colorPrimary,
-          title: SizedBox(
-            width: 250.0,
-            child: RotateAnimatedTextKit(
-                stopPauseOnTap: true,
-                repeatForever: true,
-                onTap: () {
-                  print("Tap Event");
-                },
-                text: ['Bousta'],
-                textStyle: TextStyle(
-                    fontFamily: fontprimary,
-                    fontSize: 28,
-                    letterSpacing: 2,
-                    color: colorThirdy),
-                textAlign: TextAlign.center),
-          ), //navBarTitleText('Bousta', colorThirdy),
-          centerTitle: true,
-        ),
-        // backgroundColor: colorSecondary,
         body: Stack(
           children: [
             recettesSearch.isEmpty
@@ -194,8 +173,8 @@ class _RechercheState extends State<Recherche> {
                                                   textAlign: TextAlign.left,
                                                 ),
                                                 SizedBox(
-                                                    child: Rate(
-                                                        rating, recipe.rater),
+                                                    child: Rate(recipe.rate,
+                                                        recipe.rater),
                                                     height: 20),
                                                 PersonTimer(recipe: recipe),
                                                 Text(

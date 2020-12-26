@@ -40,16 +40,13 @@ class _ForumState extends State<Forum> {
     super.initState();
   }
 
-  Color themeColor = null;
+  //Color themeColor = null;
   @override
   Widget build(BuildContext context) {
     user = context.watch<Chef>();
     //initializeDateFormatting();
     return Scaffold(
-      appBar: AppBar(
-        title: Lottie.asset('assets/Chat.json', height: 10),
-      ),
-      backgroundColor: themeColor,
+     // backgroundColor: themeColor,
       body: Column(
         children: [
           Expanded(

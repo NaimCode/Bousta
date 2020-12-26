@@ -19,11 +19,14 @@ class RecettePage extends StatefulWidget {
 
 var canCom = false.obs;
 var userRating = 0.0.obs;
+var recetteRater = 1.obs;
+var recDuJour = false.obs;
 
 class _RecettePageState extends State<RecettePage> {
   var recette;
   var userChef;
   var future;
+  Chef userAB;
   var recetteDetail;
   List etapeT = [];
   List etapeI = [];
@@ -54,7 +57,7 @@ class _RecettePageState extends State<RecettePage> {
       };
       print('middle');
       await FirebaseFirestore.instance
-          .collection('Recipe')
+          .collection('Recette')
           .doc(recette.uid)
           .collection('Discussion')
           .add(message);
@@ -69,7 +72,7 @@ class _RecettePageState extends State<RecettePage> {
     var listinit = [];
     var listinitT = [];
     var qn = await FirebaseFirestore.instance
-        .collection('Recipe')
+        .collection('Recette')
         .doc(Get.arguments.recette.uid)
         .collection('Etape')
         .get();
@@ -105,6 +108,9 @@ class _RecettePageState extends State<RecettePage> {
     recette = Get.arguments.recette;
     recetteDetail = Get.arguments;
     userChef = Get.arguments.user.uid;
+    recetteRater.value = recette.rater;
+
+    //recDuJour.value = recette.recetteDuJour;
     future = getEtape();
     // TODO: implement initState
     super.initState();
@@ -190,7 +196,7 @@ class _RecettePageState extends State<RecettePage> {
                   height: 470,
                   child: StreamBuilder(
                       stream: FirebaseFirestore.instance
-                          .collection('Recipe')
+                          .collection('Recette')
                           .doc(recette.uid)
                           .collection('Discussion')
                           .orderBy('date', descending: true)
@@ -361,140 +367,164 @@ class _RecettePageState extends State<RecettePage> {
   Widget recetteBody(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 60.0),
-      child: CustomScrollView(controller: _scrollController, slivers: [
-        SliverAppBar(
-          pinned: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios,
-                color: isShrink ? colorThirdy : colorSecondary),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          elevation: 8,
-          expandedHeight: 200,
-          flexibleSpace: FlexibleSpaceBar(
-            centerTitle: true,
-            title: Text(
-              recette.titre, //recette.titre,
-              style: TextStyle(
-                  color: isShrink ? Colors.black : Colors.white,
-                  fontFamily: fontbody,
-                  letterSpacing: 2,
-                  fontWeight: FontWeight.bold),
-            ),
-            background: Image.network(
-              recette.image,
-              fit: BoxFit.cover,
-            ),
-            collapseMode: CollapseMode.pin,
-          ),
-        ),
-        SliverList(
-            delegate: SliverChildListDelegate([
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 8.0,
-              right: 8.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RateFavorite(recetteDetail),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        InfoSection(recette: recette),
-                      ],
-                    ),
-                  ),
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          CustomScrollView(controller: _scrollController, slivers: [
+            SliverAppBar(
+              pinned: true,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios,
+                    color: isShrink ? colorThirdy : colorSecondary),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              elevation: 8,
+              expandedHeight: 200,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: Text(
+                  recette.titre, //recette.titre,
+                  style: TextStyle(
+                      color: isShrink ? Colors.black : Colors.white,
+                      fontSize: isShrink ? 16 : null,
+                      fontFamily: fontbody,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.bold),
                 ),
-                SizedBox(
-                  height: 20,
+                background: Image.network(
+                  recette.image,
+                  fit: BoxFit.cover,
                 ),
-                IngreSection(recette: recette),
-                SizedBox(
-                  height: 20,
+                collapseMode: CollapseMode.pin,
+              ),
+            ),
+            SliverList(
+                delegate: SliverChildListDelegate([
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 8.0,
+                  right: 8.0,
                 ),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Étapes',
-                          style: TextStyle(
-                              color: colorPrimary,
-                              fontFamily: fontprimary,
-                              fontSize: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RateFavorite(recetteDetail),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            InfoSection(recette: recette),
+                          ],
                         ),
-                        Divider(color: colorPrimary, thickness: 1.0),
-                      ],
+                      ),
                     ),
-                  ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    IngreSection(recette: recette),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Étapes',
+                              style: TextStyle(
+                                  color: colorPrimary,
+                                  fontFamily: fontprimary,
+                                  fontSize: 24),
+                            ),
+                            Divider(color: colorPrimary, thickness: 1.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          FutureBuilder(
-              future: future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  return SpinKitChasingDots(
-                    color: colorPrimary,
-                    size: 30,
-                  );
-                return ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: etape,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                          padding: EdgeInsets.only(bottom: 10),
-                          child: Card(
-                            child: Column(
-                              children: [
-                                (etapeI[index] == null)
-                                    ? Container()
-                                    : Container(
-                                        height: 200,
-                                        width: double.infinity,
-                                        child: Image.network(
-                                          etapeI[index],
-                                          fit: BoxFit.cover,
-                                          loadingBuilder: (context, child,
-                                              loadingProgress) {
-                                            if (loadingProgress == null)
-                                              return child;
-                                            return SpinKitChasingDots(
-                                              color: colorPrimary,
-                                              size: 26,
-                                            );
-                                          },
+              ),
+              FutureBuilder(
+                  future: future,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      return SpinKitChasingDots(
+                        color: colorPrimary,
+                        size: 30,
+                      );
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: etape,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                              padding: EdgeInsets.only(bottom: 10),
+                              child: Card(
+                                child: Column(
+                                  children: [
+                                    (etapeI[index] == null)
+                                        ? Container()
+                                        : Container(
+                                            height: 200,
+                                            width: double.infinity,
+                                            child: Image.network(
+                                              etapeI[index],
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (context, child,
+                                                  loadingProgress) {
+                                                if (loadingProgress == null)
+                                                  return child;
+                                                return SpinKitChasingDots(
+                                                  color: colorPrimary,
+                                                  size: 26,
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                    ListTile(
+                                      leading: CircleAvatar(
+                                        backgroundColor: colorPrimary,
+                                        child: Text(
+                                          '${index + 1}',
+                                          style: TextStyle(color: colorThirdy),
                                         ),
                                       ),
-                                ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: colorPrimary,
-                                    child: Text(
-                                      '${index + 1}',
-                                      style: TextStyle(color: colorThirdy),
-                                    ),
-                                  ),
-                                  title: SelectableText(
-                                    etapeT[index],
-                                    style: TextStyle(fontFamily: fontbody),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ));
-                    });
-              })
-        ]))
-      ]),
+                                      title: SelectableText(
+                                        etapeT[index],
+                                        style: TextStyle(fontFamily: fontbody),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ));
+                        });
+                  })
+            ]))
+          ]),
+          !Get.arguments.user.admin
+              ? Container()
+              : Padding(
+                  padding: const EdgeInsets.only(bottom: 30.0, right: 10.0),
+                  child: Obx(
+                    () => recDuJour.value
+                        ? FloatingActionButton(
+                            onPressed: () {
+                              recDuJour.value = false;
+                            },
+                            child:
+                                Icon(Icons.delete_forever, color: colorThirdy))
+                        : FloatingActionButton(
+                            onPressed: () {
+                              recDuJour.value = true;
+                            },
+                            child: Icon(Icons.add, color: colorThirdy)),
+                  ))
+        ],
+      ),
     );
   }
 }
@@ -569,6 +599,7 @@ class _RateFavoriteState extends State<RateFavorite> {
                           onRated: (v) async {
                             canCom.value = true;
                             userRating.value = v;
+                            recetteRater.value++;
                             data = {
                               'rate': v,
                             };
@@ -579,10 +610,10 @@ class _RateFavoriteState extends State<RateFavorite> {
                                 .doc(recette.uid)
                                 .set(data);
                             await FirebaseFirestore.instance
-                                .collection('Recipe')
+                                .collection('Recette')
                                 .doc(recette.uid)
                                 .update({
-                              'rate': recette.rate + v / recette.rater + 1,
+                              'rate': recette.rate + v,
                               'rater': recette.rater + 1
                             });
                             Get.snackbar('Information',
